@@ -9,8 +9,9 @@ Intro
 
 .. csv-table::
    :widths: auto
+   :delim: ;
 
-   20 min , :doc:`filename`
+   20 min ; :doc:`filename`
 
 
 .. toctree::
