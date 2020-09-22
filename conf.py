@@ -31,8 +31,18 @@ github_version = 'master/' # with trailing slash
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    # githubpages just adds a .nojekyll file
+    'sphinx.ext.githubpages',
     'sphinx_lesson',
+    #'sphinx.ext.intersphinx',
 ]
+
+# Settings for myst_nb:
+# https://myst-nb.readthedocs.io/en/latest/use/execute.html#triggering-notebook-execution
+#jupyter_execute_notebooks = "off"
+#jupyter_execute_notebooks = "auto"   # *only* execute if at least one output is missing.
+#jupyter_execute_notebooks = "force"
+jupyter_execute_notebooks = "cache"
 
 # Add any paths that contain templates here, relative to this directory.
 #templates_path = ['_templates']
@@ -40,8 +50,8 @@ extensions = [
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
-                    'jupyter_execute', 'venv']
+exclude_patterns = ['README*', '_build', 'Thumbs.db', '.DS_Store',
+                    'jupyter_execute', '*venv*']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -66,3 +76,12 @@ html_context = {'display_github': True,
                 'github_repo': github_repo_name or basename(dirname(realpath(__file__))),
                 'github_version': github_version,
                }
+
+# Intersphinx mapping.  For example, with this you can use
+# :py:mod:`multiprocessing` to link straight to the Python docs of that module.
+# List all available references:
+#   python -msphinx.ext.intersphinx https://docs.python.org/3/objects.inv
+#intersphinx_mapping = {
+#    #'python': ('https://docs.python.org/3', None),
+#    #'sphinx': ('https://www.sphinx-doc.org/', None),
+#    }
