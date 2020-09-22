@@ -3,9 +3,13 @@ LESSON NAME
 
 Intro
 
+
+
 .. prereq::
 
    prerequisites
+
+
 
 .. csv-table::
    :widths: auto
@@ -28,5 +32,29 @@ Intro
 
 
 
+.. _learner-personas:
+
+Who is the course for?
+----------------------
+
+
+
+
+
+About the course
+----------------
+
+
+
+
+
+
 See also
 --------
+
+
+
+
+
+Credits
+-------
