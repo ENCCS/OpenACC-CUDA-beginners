@@ -22,8 +22,8 @@ copyright = '2020, The contributors'
 author = 'The contributors'
 github_user = 'coderefinery'
 github_repo_name = ''  # auto-detected from dirname if blank
-github_version = 'master/' # with trailing slash
-
+github_version = 'master'
+conf_py_path = '/content/' # with leading and trailing slash
 
 # -- General configuration ---------------------------------------------------
 
@@ -75,6 +75,7 @@ html_context = {'display_github': True,
                 # useful as a default.
                 'github_repo': github_repo_name or basename(dirname(realpath(__file__))),
                 'github_version': github_version,
+                'conf_py_path': conf_py_path,
                }
 
 # Intersphinx mapping.  For example, with this you can use
