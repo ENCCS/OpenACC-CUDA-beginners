@@ -1,0 +1,28 @@
+.. _cuda-introduction:
+
+Introguction to CUDA
+====================
+
+Hello, CUDA!
+-------------
+
+`Cuda device properties API <https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html#structcudaDeviceProp>`_.
+
+.. typealong:: Adding vectors using CUDA 
+
+   .. tabs::
+
+      .. tab:: C++
+
+         .. literalinclude:: ../examples/CUDA/VectorAdd/vector_add.cpp
+            :language: c++
+
+      .. tab:: CUDA
+
+         .. literalinclude:: ../examples/CUDA/VectorAdd/vector_add_gpu.cu
+            :language: CUDA
+    
+      .. tab:: Solution
+
+         .. literalinclude:: ../examples/CUDA/VectorAdd/vector_add_gpu_ref.cu
+            :language: CUDA

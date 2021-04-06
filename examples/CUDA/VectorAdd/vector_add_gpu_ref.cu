@@ -29,9 +29,10 @@ int main()
     float* d_a;
     float* d_b;
     float* d_c;
-	cudaMalloc((void**)&d_a, numElements*sizeof(float));
-	cudaMalloc((void**)&d_b, numElements*sizeof(float));
-	cudaMalloc((void**)&d_c, numElements*sizeof(float));
+    
+    cudaMalloc((void**)&d_a, numElements*sizeof(float));
+    cudaMalloc((void**)&d_b, numElements*sizeof(float));
+    cudaMalloc((void**)&d_c, numElements*sizeof(float));
 
     cudaMemcpy(d_a, a, numElements*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, numElements*sizeof(float), cudaMemcpyHostToDevice);

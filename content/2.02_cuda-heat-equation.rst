@@ -1,0 +1,5 @@
+.. _cuda-heat-equation:
+
+Solving heat equation with CUDA
+===============================
+
