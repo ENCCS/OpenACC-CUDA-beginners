@@ -15,15 +15,15 @@ int main()
 {
     int numElements = 10000;
 
-    float* a = (float*)calloc(numElements, sizeof(float));
-    float* b = (float*)calloc(numElements, sizeof(float));
-    float* c = (float*)calloc(numElements, sizeof(float));
+    float* h_a = (float*)calloc(numElements, sizeof(float));
+    float* h_b = (float*)calloc(numElements, sizeof(float));
+    float* h_c = (float*)calloc(numElements, sizeof(float));
 
     srand(1214134);
     for (int i = 0; i < numElements; i++)
     {
-        a[i] = float(rand())/float(RAND_MAX + 1.0);
-        b[i] = float(rand())/float(RAND_MAX + 1.0);
+        h_a[i] = float(rand())/float(RAND_MAX + 1.0);
+        h_b[i] = float(rand())/float(RAND_MAX + 1.0);
     }
 
     float* d_a;
@@ -34,18 +34,26 @@ int main()
     cudaMalloc((void**)&d_b, numElements*sizeof(float));
     cudaMalloc((void**)&d_c, numElements*sizeof(float));
 
-    cudaMemcpy(d_a, a, numElements*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, b, numElements*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_a, h_a, numElements*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, h_b, numElements*sizeof(float), cudaMemcpyHostToDevice);
 
     vecAdd<<<numElements/256 + 1, 256>>>(numElements, d_a, d_b, d_c);
 
-    cudaMemcpy(c, d_c, numElements*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_c, d_c, numElements*sizeof(float), cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < std::min(10, numElements); i++)
     {
-        printf("%f + %f = %f\n", a[i], b[i], c[i]);
+        printf("%f + %f = %f\n", h_a[i], h_b[i], h_c[i]);
     }
     printf("...\n");
+
+    free(h_a);
+    free(h_b);
+    free(h_c);
+
+    cudaFree(d_a);
+    cudaFree(d_b);
+    cudaFree(d_c);
     
     return 0;
 }

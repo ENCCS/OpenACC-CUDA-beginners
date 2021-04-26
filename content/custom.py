@@ -18,46 +18,13 @@ class TypealongDirective(_BaseCRDirective):
 DIRECTIVES = [SignatureDirective, ParametersDirective, TypealongDirective]
 
 COMMANDS = [
-    "cmake_minimum_required",
-    "project",
-    "add_subdirectory",
-    "add_library",
-    "add_executable",
-    "target_sources",
-    "find_package",
-    "find_file",
-    "find_path",
-    "find_library",
-    "find_program",
-    "target_include_directories",
-    "target_link_libraries",
-    "target_compile_options",
-    "target_compile_definitions",
-    "message",
-    "option",
-    "if",
-    "foreach",
-    "cmake_host_system_information",
-    "configure_file",
-    "execute_process",
-    "add_custom_command",
-    "try_compile",
-    "try_run",
-    "add_test",
-    "set_tests_properties",
-    "set",
-    "include",
-    "get_property",
-    "set_property",
-    "get_target_property",
-    "set_target_properties",
-    "add_custom_target",
+    "cudaMalloc",
 ]
 
 CTERM = """
 .. |{command}| raw:: html
 
-   <a class="reference internal" href="https://cmake.org/cmake/help/latest/command/{command}.html"><span class="xref std std-term"><code class="docutils literal notranslate">{command}</code></span></a>
+   <a class="reference internal" href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html"><span class="xref std std-term"><code class="docutils literal notranslate">{command}(...)</code></span></a>
 """
 
 VARIABLES = [

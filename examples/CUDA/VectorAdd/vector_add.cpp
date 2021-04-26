@@ -32,6 +32,10 @@ int main()
         printf("%f + %f = %f\n", a[i], b[i], c[i]);
     }
     printf("...\n");
+
+    free(a);
+    free(b);
+    free(c);
     
     return 0;
 }
