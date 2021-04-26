@@ -1,6 +1,6 @@
 .. _gpu-introduction:
 
-Introguction to GPU
+Introduction to GPU
 ===================
 
 

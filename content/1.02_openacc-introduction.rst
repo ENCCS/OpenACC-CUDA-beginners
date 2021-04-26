@@ -1,5 +1,5 @@
 .. _openacc-introduction:
 
-Introguction to OpenACC
+Introduction to OpenACC
 =======================
 
