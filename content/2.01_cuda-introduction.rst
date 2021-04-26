@@ -1,6 +1,6 @@
 .. _cuda-introduction:
 
-Introguction to CUDA
+Introduction to CUDA
 ====================
 
 Hello, CUDA!
@@ -257,4 +257,18 @@ To have an access to the buffers, we need pass the device pointers to the kernel
 
 
 Now the kernel is defined, we can call it from the host code.
-As mentioned above, the kernel will be executed in a grid of threads. 
+Since the kernel will be executed in a grid of threads, so the kernel launch should be supplied with the configuration of the grid.
+In CUDA this is done by adding a ``kernel cofiguration``, ``<<<numBlocks, threadsPerBlock>>>``, to the function call:
+
+.. code-block:: c++
+
+   gpu_kernel<<<numBlocks, threadsPerBlock>>>(..)
+
+Here, ``numBlocks`` is the total number of thread blocks in the grid, ``threadsPerBlock`` is the number of threads in a single block.
+Note, that these values can be integers, or can be two-dimensional of three-dimensional vectors, if this is more suitable for the kernel.
+It is natural to use the one-dimensional layout for the vector addition problem, which is itself one-dimensional.
+In this case, the kernel configuration can be specified by two integer values.
+The threadsPerBlock can be arbitrary chosen, but should be larger that the number of CUDA cores in the SM.
+Good starting values are 256 or 512.
+Since one has to make sure that the total number of threads (i.e. ``numBlocks*threadsPerBlock`` is greater or equal to the size of the vector.
+So ``numBlocks`` can be defined as ``numElements/threadsPerBlock + 1``, where ``numElements`` is a number of elements in the vector.
