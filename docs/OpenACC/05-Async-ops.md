@@ -1,11 +1,3 @@
----
-title:  "OpenACC: asynchronous operations"
-author: CSC - IT Center for Science
-date:   2019-10
-lang:   en
----
-
-
 # Motivation
 
 - By default, the local thread will wait until OpenACC compute or data

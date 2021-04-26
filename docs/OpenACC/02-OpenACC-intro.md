@@ -1,11 +1,3 @@
----
-title:  "OpenACC: introduction"
-author: CSC - IT Center for Science
-date:   2020-10
-lang:   en
----
-
-
 # What is OpenACC ?
 
 - OpenACC defines a set of compiler directives that allow code regions to

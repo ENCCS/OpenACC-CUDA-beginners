@@ -1,11 +1,3 @@
----
-title:  "OpenACC: data management"
-author: CSC - IT Center for Science
-date:   2020-10
-lang:   en
----
-
-
 # OpenACC data environment
 
 - OpenACC supports devices which either share memory with or have a

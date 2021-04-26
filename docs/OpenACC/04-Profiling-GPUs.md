@@ -1,11 +1,3 @@
----
-title:  Profiling and performance optimisation
-author: CSC - IT Center for Science
-date:   2020-10
-lang:   en
----
-
-
 # Outline
 
 - NVidia profiling tools

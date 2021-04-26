@@ -1,10 +1,3 @@
----
-title:  "OpenACC: interoperability"
-author: CSC - IT Center for Science
-date:   2019-10
-lang:   en
----
-
 # Interoperability with libraries {.section}
 
 

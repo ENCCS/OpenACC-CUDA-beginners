@@ -1,11 +1,3 @@
----
-title:  "OpenACC: routine directive"
-author: CSC - IT Center for Science
-date:   2019-10
-lang:   en
----
-
-
 # Function calls in compute regions
 
 - Often it can be useful to call functions within loops to improve

@@ -1,11 +1,3 @@
----
-title:  "OpenACC: multi-GPU programming"
-author: CSC - IT Center for Science
-date:   2020-10
-lang:   en
----
-
-
 # Multi-GPU programming with OpenACC
 
 <div class=column>

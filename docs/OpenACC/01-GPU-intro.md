@@ -1,11 +1,3 @@
----
-title:  Introduction to GPUs in HPC
-author: CSC - IT Center for Science
-date:   2020-10
-lang:   en
----
-
-
 # High-performance computing
 
 <div class="column">
