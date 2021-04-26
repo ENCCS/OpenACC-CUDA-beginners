@@ -23,7 +23,7 @@ project = "OpenACC/CUDA for beginners"
 copyright = "2020, EuroCC National Competence Centre Sweden"
 author = "Artem Zhmurov, Jing Gong, Kjartan Thor Wikfeldt"
 github_user = "ENCCS"
-github_repo_name = "openacc-cuda-beginners"  # auto-detected from dirname if blank
+github_repo_name = "OpenACC-CUDA-beginners"  # auto-detected from dirname if blank
 github_version = "main"
 conf_py_path = "/content/"  # with leading and trailing slash
 
