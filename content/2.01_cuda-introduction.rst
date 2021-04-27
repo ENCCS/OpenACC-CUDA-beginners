@@ -6,7 +6,7 @@ Introduction to CUDA
 Hello, CUDA!
 -------------
 
-Let us start familiarizing ourselves with CUDA by writing a simple "Helloca CUDA" program, which will query all available devices and print some information on them.
+Let us start familiarizing ourselves with CUDA by writing a simple "Hello CUDA" program, which will query all available devices and print some information on them.
 We will start with a basic ``.cpp`` code, change it so it will be compiled by CUDA compiler and do some CUDA API call, to see what devices are available.
 
 .. typealong:: Getting the information on available devices using CUDA API 
@@ -28,45 +28,45 @@ We will start with a basic ``.cpp`` code, change it so it will be compiled by CU
          .. literalinclude:: ../examples/CUDA/DeviceList/list_devices_ref_extended.cu
             :language: CUDA
 
-1. We need the compiler to be aware that it is dealing with source file that may contain CUDA code.
-   To do so, we change the extension of the file to ``.cu``.
-   We will not be using the GPU yet, only checking if we have some available.
-   To do so, we will be using the CUDA API functions.
-   Changing the extension to ``.cu`` will make sure that the ``nvcc`` compiler will add all the necessary includes and will be aware that the code can contain CUDA API calls.
+   1. We need the compiler to be aware that it is dealing with source file that may contain CUDA code.
+      To do so, we change the extension of the file to ``.cu``.
+      We will not be using the GPU yet, only checking if we have some available.
+      To do so, we will be using the CUDA API functions.
+      Changing the extension to ``.cu`` will make sure that the ``nvcc`` compiler will add all the necessary includes and will be aware that the code can contain CUDA API calls.
 
-2. To get the number of devices we are going to use the following CUDA API function:
+   2. To get the number of devices we are going to use the following CUDA API function:
 
-   .. code-block:: c++
+      .. code-block:: c++
 
-      __host__​__device__​ cudaError_t cudaGetDeviceCount ( int* numDevices )
+         __host__​__device__​ cudaError_t cudaGetDeviceCount ( int* numDevices )
 
-   The function calls the API and returns the number of the available devices in the address provided as a first argument.
-   There are a couple of things to notice here.
-   First, the function is defined with two CUDA-specific qualifiers ``__host__`` and ``__device__``.
-   This means that it is available in both host and device code.
-   Second, as most of CUDA calls, this function returns ``cudaError_t`` structure, which can contain a error message if something went wrong.
-   In case of success, ``cudaSuccess`` is returned.
+      The function calls the API and returns the number of the available devices in the address provided as a first argument.
+      There are a couple of things to notice here.
+      First, the function is defined with two CUDA-specific qualifiers ``__host__`` and ``__device__``.
+      This means that it is available in both host and device code.
+      Second, as most of CUDA calls, this function returns ``cudaError_t`` structure, which can contain a error message if something went wrong.
+      In case of success, ``cudaSuccess`` is returned.
 
-3. Now that we know how many devices we have, we can sycle through them and get properties of each one.
-   The device properties are contained in ``cudaDeviceProp`` structure.
-   This structure contains extensive information on the device (`see cudaDeviceProp API <https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html#structcudaDeviceProp>`_), we are going to check its
-   name (``prop.name``), 
-   major and minor compute capabilities (``prop.major`` and ``prop.minor``), 
-   number of streaming processors (``prop.multiProcessorCount``), 
-   core clock and available memory (``prop.totalGlobalMem``).
-   
-   To populate the ``cudaDeviceProp`` structure, one needs to call:
+   3. Now that we know how many devices we have, we can sycle through them and get properties of each one.
+      The device properties are contained in ``cudaDeviceProp`` structure.
+      This structure contains extensive information on the device (`see cudaDeviceProp API <https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html#structcudaDeviceProp>`_), we are going to check its
+      name (``prop.name``), 
+      major and minor compute capabilities (``prop.major`` and ``prop.minor``), 
+      number of streaming processors (``prop.multiProcessorCount``), 
+      core clock and available memory (``prop.totalGlobalMem``).
+      
+      To populate the ``cudaDeviceProp`` structure, one needs to call:
 
-   .. code-block:: c++
+      .. code-block:: c++
 
-   __host__​ cudaError_t cudaGetDeviceProperties ( cudaDeviceProp* prop, int  deviceId )
+         __host__​ cudaError_t cudaGetDeviceProperties ( cudaDeviceProp* prop, int  deviceId )
 
-   The function has a ``__host__`` qualifier, which means that one can not call it from the device code.
-   It also returns ``cudaError_t`` structure, which can be ``cudaErrorInvalidDevice`` in case we are trying to get properties of a non-existing device (e.g. when ``deviceId`` is larger than ``numDevices``)
-   
-4. Note that the total number of CUDA cores is not contained in ``cudaDeviceProp`` structure.
-   This is so, because different devices can have different number of CUDA cores per streaming module (multiprocessor), which can by up to 192, depending on compute capabilities major and minor version of the device.
-   The provided solution has a helper function from CUDA SDK examples, that can get this number depending on ``prop.major`` and ``prop.minor``.
+      The function has a ``__host__`` qualifier, which means that one can not call it from the device code.
+      It also returns ``cudaError_t`` structure, which can be ``cudaErrorInvalidDevice`` in case we are trying to get properties of a non-existing device (e.g. when ``deviceId`` is larger than ``numDevices``)
+      
+   4. Note that the total number of CUDA cores is not contained in ``cudaDeviceProp`` structure.
+      This is so, because different devices can have different number of CUDA cores per streaming module (multiprocessor), which can by up to 192, depending on compute capabilities major and minor version of the device.
+      The provided solution has a helper function from CUDA SDK examples, that can get this number depending on ``prop.major`` and ``prop.minor``.
 
 
 Transfer data, execute kernels
@@ -96,12 +96,12 @@ Transfer data, execute kernels
          .. literalinclude:: ../examples/CUDA/VectorAdd/vector_add_gpu_ref.cu
             :language: CUDA
 
-1. Familiarize yourself with the CPU version of the code.
+   1. Familiarize yourself with the CPU version of the code.
 
-2. Download the CUDA stub version. We are going to start working on it below.
+   2. Download the CUDA stub version. We are going to start working on it below.
 
-3. The last two tabs contain intermediate version of the code, with all the GPU data management in place and a full solution.
-   Feel free to use these codes for a reference.
+   3. The last two tabs contain intermediate version of the code, with all the GPU data management in place and a full solution.
+      Feel free to use these codes for a reference.
       
 
 Now that we know that there is a CUDA device available and we can execute simple code on it.
@@ -272,3 +272,118 @@ The threadsPerBlock can be arbitrary chosen, but should be larger that the numbe
 Good starting values are 256 or 512.
 Since one has to make sure that the total number of threads (i.e. ``numBlocks*threadsPerBlock`` is greater or equal to the size of the vector.
 So ``numBlocks`` can be defined as ``numElements/threadsPerBlock + 1``, where ``numElements`` is a number of elements in the vector.
+
+
+Build-in CUDA vector types
+--------------------------
+
+CUDA has built-in vector types derived from basic integer and floating point types.
+They are structures of 1, 2, 3 and 4 component that can be accessed through the fields x, y, z and w respectively.
+For instance, ``float3`` type has ``x``, ``y`` and ``z`` types.
+All these types come with a constructor function, for instance:
+
+.. code-block:: c++
+
+   int2 make_int2(int x, int y);
+
+Built-in data types are not only convenient to use in many cases, but can also improve the overall performance of the code, since the data in these types are aligned for optimal access pattern.
+We already encountered the built-in data types when we were computing the global thread index in the previous example.
+The ``threadIdx``, ``blockIdx`` and ``blockDim`` variables are all of type ``uint3``, which reflects the dimensionality of the grid of threads.
+
+.. typealong:: Computing scalar products of vectors using CUDA: using built-in vector types
+
+   .. tabs::
+
+      .. tab:: C++
+
+         .. literalinclude:: ../examples/CUDA/VectorDotProduct/vector_dot_product.cpp
+            :language: c++
+
+      .. tab:: CUDA stub
+
+         .. literalinclude:: ../examples/CUDA/VectorDotProduct/vector_dot_product_gpu.cu
+            :language: CUDA
+    
+      .. tab:: Solution
+
+         .. literalinclude:: ../examples/CUDA/VectorDotProduct/vector_dot_product_gpu_ref.cu
+            :language: CUDA
+
+      Note that .cpp file has to both be compiled with nvcc and have``#include <cuda_runtime.h>`` line.
+      This is because normal compiler is not aware of CUDA types.
+      Even though the CUDA compiler will pass the compilation to normal compiler, it is aware of the CUDA runtime and will be able to locate the CUDA runtime header.
+      The include is not needed in .cu files, since nvcc will automatically add it.
+
+      0. Compile and execute the CPU code to have reference values.
+      
+      1. Start with CUDA version of vector add example.
+
+      2. Change the CPU and GPU data types for vectors ``a`` and ``b`` to ``float3``, do not forget to change the allocation and copy sizes.
+
+      3. Initialize all three components (``.x``, ``.y`` and ``.z``) of vectors ``h_a`` and ``h_b``.
+
+      4. Change the kernel so that it will compute scalar product of two vectors.
+         Use CPU code as a reference.
+
+      5. Change the output print-out.
+         Feel free to copy this part of the code from the CPU version.
+         Do not forget to change the names of the vectors from ``a``, ``b`` and ``c`` to ``h_a``, ``h_b`` and ``h_c``
+
+      6. Compile and run.
+      You should get the same results as in CPU version.
+
+Question: How can one make the code compile with gcc?
+
+   1. Add CUDA libraries to the LD_LIBRARY_PATH.
+
+   2. Add CUDA include folder to CPATH.
+
+   3. Both 1 and 2.
+
+   4. Remove the include and refine ``struct float3 {float x, y, z;};``
+
+   Answer: 2 and 4 are correct answers.
+   ``float3`` is a basic structure, so the inclusion of the header is all that is needed.
+   Alternatively, one can define similar structure, but it will collide with CUDA definition if this code will be used with CUDA.
+
+The ``numBlocks`` and ``threadsPerBlock`` are of another special type --- ``dim3``, which is ``uint3``, that initialized unspecified values to ``1``.
+This makes it possible to define just one dimension for one-dimensional grid, as we did in the example above.
+Having more than one dimension can be useful when working with two- or three-dimension space, or working with matrices, as in the following example.
+
+.. typealong:: Adding two matrices: using multi-dimensional grid 
+
+   .. tabs::
+
+      .. tab:: C++
+
+         .. literalinclude:: ../examples/CUDA/MatrixAdd/matrix_add.cpp
+            :language: c++
+
+      .. tab:: CUDA stub
+
+         .. literalinclude:: ../examples/CUDA/MatrixAdd/matrix_add_gpu.cu
+            :language: CUDA
+    
+      .. tab:: Solution
+
+         .. literalinclude:: ../examples/CUDA/MatrixAdd/matrix_add_gpu_ref.cu
+            :language: CUDA
+
+   0. Compile and execute the CPU code to have reference values.
+   
+   1. Use a stub code as your starting point.
+
+   2. Allocate buffers and copy data to GPU.
+      Add device to host copy for the resulting matrix C.
+
+   3. Add ``__global__`` to the kernel definition.
+      Change the loop indices into thread indices.
+      Use component ``.x`` for the index ``i`` (row) and ``.y`` for ``j`` (column).
+      Add out-of-range conditionals.
+
+   4. Change the function call to the kernel call.
+      Since number of blocks and number of thread per block are of a type ``dim3``, you can use constructors with just two integers (e.g. ``dim3 threadsPerBlock(threadsPerBlockI, threadsPerBlockJ);``).
+      Note that the block will have ``threadsPerBlockI*threadsPerBlockJ`` threads in total, so the values of ``threadsPerBlockI`` and ``threadsPerBlockI`` should be around ``16``.
+      Otherwise you may hit the API limit of number of threads per block.
+
+   5. The result of the execution should be identical to the CPU code.

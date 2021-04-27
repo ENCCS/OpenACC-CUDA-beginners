@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <algorithm>
 
+#define BLOCK_SIZE 256
+
 __global__ void vecAdd(int numElements, const float* a, const float* b, float* c)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
@@ -37,7 +39,7 @@ int main()
     cudaMemcpy(d_a, h_a, numElements*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, h_b, numElements*sizeof(float), cudaMemcpyHostToDevice);
 
-    vecAdd<<<numElements/256 + 1, 256>>>(numElements, d_a, d_b, d_c);
+    vecAdd<<<numElements/BLOCK_SIZE + 1, BLOCK_SIZE>>>(numElements, d_a, d_b, d_c);
 
     cudaMemcpy(h_c, d_c, numElements*sizeof(float), cudaMemcpyDeviceToHost);
 
