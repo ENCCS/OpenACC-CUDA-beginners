@@ -8,7 +8,7 @@
 module use /proj/snic2021-22-274/hpc_sdk/modulefiles
 module load nvhpc
 
-srun ./hello
+srun ./sum
 
 # Submit to the batch job queue with the command:
 #  sbatch job.sh
