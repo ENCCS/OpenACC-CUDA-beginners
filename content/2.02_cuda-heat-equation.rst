@@ -3,3 +3,114 @@
 Solving heat equation with CUDA
 ===============================
 
+The problem
+-----------
+
+The heat equation is a partial differential equation that describes the propagation of heat in a region over time.
+Two-dimensional heat equation can be written as:
+
+.. math::
+
+   \frac{\partial U}{\partial t}=a\left(\frac{\partial^2U}{\partial x^2}+\frac{\partial^2U}{\partial y^2}\right)
+
+Where :math:`x` and :math:`y` are spatial variables, :math:`t` is the time.
+:math:`U` is the temperature, :math:`a` is thermal conductivity.
+It is common to use :math:`U` instead of :math:`T` for the temperature, since the same mathematical equation describes diffusion, in which case, :math:`a` will be a diffusion constant.
+
+To formulate the problem, one needs to also specify the initial condition, i.e. function :math:`U(x,y,t)` at :math:`t=0`.
+This is sufficient for infinite domain, where :math:`x \in (-\infty,+\infty)` and :math:`y \in (-\infty,+\infty)`.
+Since simulating over the infinite spatial domain is not possible, the numerical computations are usually done on a finite area.
+This implies that one has to specify boundary condition on the region.
+That is, if  :math:`x \in (x_0, x_1)` and :math:`y \in (y_0, y_1)`, values of functions :math:`U(x_0,y,t)`, :math:`U(x_1,y,t)`, :math:`U(x,y_0,t)` and :math:`U(x,y_1,t)` should be set.
+With the area limited, one can approximate the function :math:`U(x,y,t)` with the grid function :math:`U^n_{ij}`, where :math:`n=0,1,2,\ldots,N` is the time step, :math:`i=0,1,\ldots,N_x-1` and :math:`j=0,1,\ldots,N_y-1` are the spatial steps.
+The grid is usually defined as a set of equally separated points, such as :math:`t_n=n\cdot dt`, :math:`x_i=x_0+i\cdot dx` and :math:`y_i=y_0+j\cdot dy`.
+The values of spatial steps :math:`dx` and :math:`dy` are such that the final grid points are :math:`x_1` and :math:`y_1` for two spatial dimensions respectively.
+
+With the grid defined, one can use the following explicit approximation for the differential equation:
+
+.. math::
+
+    \frac{U^{n+1}_{i,j}-U^{n}_{i,j}}{t_n}=a\left(\frac{U^n_{i-1,j}-2U^{n}_{i,j}+U^n_{i+1,j}}{dx} + \frac{U^n_{i,j-1}-2U^{n}_{i,j}+U^n_{i,j+1}}{dx}\right)
+
+Here we used basic approximations for the first and second derivatives :math:`\frac{df}{dx}\approx\frac{f(x+dx)-f(x)}{dx}` and :math:`\frac{d^2f}{dx^2}\approx\frac{f(x-dx)-2f(x)+f(x+dx)}{dx^2}`.
+In the equation above, the values on the next time step, :math:`U^{n+1}_{i,j}` are unknown.
+Indeed, if :math:`n=0`, the only unknown value in equation for each :math:`i` and :math:`j` is :math:`U^1_{ij}`: the rest are determined by the initial condition.
+Going through all possible values of :math:`i` and :math:`j`, one can compute the grid function :math:`U^n_{i,j}` at :math:`n=1`.
+This procedure is then repeated for :math:`n=2` and so on.
+Note that the values at the borders can not be computed from the equation above, since some of the required values will be out of the spatial region (e.g. :math:`U^n_{i-1,j}` when :math:`i=0`).
+This is where the boundary conditions are used.
+
+The numerical scheme can then be rearranged to give an explicit expression for these values:
+
+.. math::
+
+    U^{n+1}_{i,j}= U^{n}_{i,j} + dh\cdot a\left(\frac{U^n_{i-1,j}-2U^{n}_{i,j}+U^n_{i+1,j}}{dx} + \frac{U^n_{i,j-1}-2U^{n}_{i,j}+U^n_{i,j+1}}{dx}\right)
+
+And this is the expression we are going to use in our code.
+
+The choice of the spatial steps :math:`dx` and :math:`dy` (or equally the choice of number of spatial steps :math:`N_x` and :math:`N_y`) are determined by the required spatial resolution.
+With the spatial steps set, the time step is limited by the stability of the numerical approximation of the equation, i.e. by:
+
+.. math::
+
+    dt \leq \frac{1}{2a}\frac{1}{\frac{1}{dx^2}+\frac{1}{dy^2}}=\frac{dx^2dy^2}{2a(dx^2+dy^2)}
+
+We are going to be using the maximum possible time steps, as determined by the expression above.
+
+Porting the code
+----------------
+
+.. typealong:: Initial CUDA port 
+
+   .. tabs::
+
+      .. tab:: C++
+
+         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation.cpp
+            :language: CUDA
+
+      .. tab:: CUDA (solution)
+
+         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_1.cu
+            :language: CUDA
+      
+
+Moving data ownership to the device
+-----------------------------------
+
+Removing redundant host-to-device and device-to-host copy calls
+
+.. typealong:: Moving the data ownership to the device
+
+   .. tabs::
+
+      .. tab:: CUDA
+
+         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_1.cu
+            :language: CUDA
+
+      .. tab:: CUDA: device owns the data (solution)
+
+         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_2_remove_copy_calls.cu
+            :language: CUDA
+
+
+
+Using shared memory
+-------------------
+
+
+.. typealong:: Use shared memory
+
+   .. tabs::
+
+      .. tab:: CUDA: device owns the data
+
+         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_2_remove_copy_calls.cu
+            :language: CUDA
+
+
+      .. tab:: CUDA: use shared memory (solution)
+
+         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_3_shared_memory.cu
+            :language: CUDA
