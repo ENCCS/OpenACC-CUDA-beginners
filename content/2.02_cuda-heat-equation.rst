@@ -60,57 +60,206 @@ We are going to be using the maximum possible time steps, as determined by the e
 Porting the code
 ----------------
 
+Even though the problem is two-dimensional, we are still going to use one-dimensional arrays in CUDA.
+This allows for an explicit control of the memory access pattern.
+We want neighboring threads to access the neighboring elements of an array, so that the limited amounts of cache will be used efficiently.
+For that, we add a helper function that computes the one-dimensional index from two indices:
+
+.. code-block:: c++
+
+    getIndex(const int i, const int j, const int width)
+    {
+        return i*width + j;
+    }
+
+Here, ``width`` is a width of a two-dimensional array, ``i`` and ``j`` are the two-dimensional indices.
+
+Since we are going to use non-trivial data access pattern in the following examples, it is good idea to constantly check for errors.
+Not to overload the code with extra checks, we are going to use the following function from the CUDA API:
+
+.. code-block:: c++
+
+    __host__​__device__​cudaError_t cudaGetLastError ( void )
+
+This function will check if there were any CUDA API errors in the previous calls and should return ``cudaSuccess`` if there were none.
+We will check this, and print an error message if this was not the case.
+In order to render a human-friendly string that describes an error, the following CUDA function will be used:
+
+.. code-block:: CUDA
+
+    __host__​__device__​const char* cudaGetErrorString ( cudaError_t error )
+
+This will return a string, that we are going to print in case there were errors.
+
+We will also need to use the ``getIndex(..)`` function from the device code.
+To do so, we will need to ask a compiler to compile it for the device execution.
+This is done by adding a ``__device__`` qualifier to its definition, will make the function available in the device code but not available in the host code.
+Since we are also using it when populating the initial conditions, we also need a ``__host__`` qualifier.
+
 .. typealong:: Initial CUDA port 
 
-   .. tabs::
+    .. tabs::
 
-      .. tab:: C++
+        .. tab:: C++
 
-         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation.cpp
-            :language: CUDA
+            .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation.cpp
+                :language: CUDA
 
-      .. tab:: CUDA (solution)
+        .. tab:: CUDA (solution)
 
-         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_1.cu
-            :language: CUDA
-      
+            .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_1.cu
+                :language: CUDA
+    
+    1. Change the extension to ``.cu``, add device buffers, allocate memory.
+
+    2. Prepare kernel configuration parameters.
+       Since we have a double loop over coordinates, it is convinient to map it to two-dimensional block of threads.
+       Note that the total number of threads per block will be multiple of the number of threads in each dimensions, so it is easy to assign too many threads to a single block.
+       Decide the size of the block and compute the required number of blocks and create corresponding ``dim3`` variables.
+       It is convinient to use ``#define`` to specify the block sizes in each direction, since we are going to need them in the GPU code.
+
+    3. At the beginning of the main loop, copy data to the GPU.
+
+    4. Add a ``__device__ __host__`` qualifiers to the ``getIndex(..)`` function definition.
+
+       Question: What will happen, if the ``__host__ __device__`` function has the following line in its definition: ``printf("%ld\n", 13);``?
+
+       1. Nothing. Everything will compile and execute fine.
+       2. The code will not compile --- one can not use ``printf()`` in the device code.
+       3. The code will compile with a warning, but will not execute.
+       4. The code will compile with a warning and will execute printing number "13" many times.
+       5. The code will compile with two warnings, but will not execute.
+       6. The code will compile with two warnings, and will execute printing number "13" many times.
+
+       Answer: The added line should cause compiler to issue a warning.
+       Since this line is in the ``__host__ __device__`` function, there are going to be two warnings: one from the CPU compiler, one from the GPU compiler.
+       All modern versions of CUDA allow printing from the kernels, althogh the order in which threads are printing is quite random.
+
+    4. Create a gpu kernel and move the double loop over coordinates into it.
+       Change the loop indices to the components of the respective thread indices.
+       Make sure that the data outside the domain is not accessed by installing a conditional on the indices (see the iteration limits of the original loops).
+
+    5. After the kernel is executed, copy the data back to the host memory.
+    
 
 Moving data ownership to the device
 -----------------------------------
 
-Removing redundant host-to-device and device-to-host copy calls
+There is a lot of room for improvements in the previous implementation.
+The most obvous part is the host-device and device-to host data transfers.
+Even though the transfers are relatively fast, they are much slower than accessing the memory in the kernel call.
+So eliminating the transfers is one of the most basic and most effitient improvements.
+
+Note that in more complicated cases, eliminating the data transfers between host and device can be challenging.
+For instance, in cases where not all the computational procedures are ported to the GPU.
+This may happen on the early stages of the code porting, or because it is more effitient to compute some parts of the algorithm on a CPU.
+In this cases, effort should be made to hide the copy behind the computations: the compute kernels and copy calls use different resources.
+These two operations can be done simultaneously: while GPU is busy computing, the data can be copied on the background.
+One should also consider using CPU efficiently: if everything is computed on a device, host will be idling.
+This is a waste of resources.
+In some cases one can copy some data to the host memory, do the computations and copy data back while the device is still computing.
+
+Remove unnessesary host to device and device to host data transfers, can also be looked at as the change in the data ownerhip.
+Now the device holds the data, do all computational procedures and, occasionally, the data is copied back to the CPU for e.g. output.
+This is exactly the case in our code: there is nothing to compute between two consequative time steps, so there is no need to copy data to the host on each step.
+The data only needed on the host for the output.
+
+In the following exercise we will eliminate the unnessesary data transfers and will make the device responsible for holding current data.
 
 .. typealong:: Moving the data ownership to the device
 
-   .. tabs::
+    .. tabs::
 
-      .. tab:: CUDA
+        .. tab:: CUDA
 
-         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_1.cu
-            :language: CUDA
+            .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_1.cu
+                :language: CUDA
 
-      .. tab:: CUDA: device owns the data (solution)
+        .. tab:: CUDA: device owns the data (solution)
 
-         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_2_remove_copy_calls.cu
-            :language: CUDA
+            .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_2_remove_copy_calls.cu
+                :language: CUDA
+
+    1. Use the solution of the previous example as a starting point.
+
+    2. Move the host to device copy calls to before the main loop (i.e. before the loop over the time steps).
+
+    3. Move the device to host copy into the conditional on the output.
+       Only the current layer of data is needed (``Un``).
+
+    4. Change the pointer swapping from the host pointers to the device pointer.
+       In CUDA, the device buffers are just pointers, so the usual operations work the same way as with the host pointer.
+
+    5. Now, the ``Unp1`` array on the host can be removed, since it is redundant.`
 
 
 
 Using shared memory
 -------------------
 
+Another useful way to optimize the device code is to reduce the number of global memory calls in the GPU kernel.
+Even though the memory bandwith is very high on modern GPUs, many threads are using it.
+And there is not so much cache to go with either.
+Minimizing the calls to the global memory can drastically improve the computational efficiency of the application.
+Shared memory is the cache memory that is shared between threads in a block.
+The access pattern in our GPU kernel is such that neighboring threads aggess neighboring data.
+This means that some of the data is accessed by neighboring threads.
+In fact, each value of the grid function, :math:`U^n_{ij}` is read 5 times --- once as the central point in the thread ``(i,j)`` and once as a side point in threads ``(i-1,j)``, ``(i+1,j)``, ``(i,j-1)`` and ``(i,j+1)``.
+What can be done instead is, at the beginning of the kernel call, we read the value of the central point into the shared memory.
+Than, we ask all the threads to wait until all the values are read.
+Once the data is ready, we proceed with the computation.
+Additionally, one will hate to take care of the extra values at the borders of the thread block, which we will see while working on the example.
+
+But before we start, we need to learn the extra tools that we are going to need.
+There are two ways of allocating the shared memory: dynamic and static.
+The dynamic allocation is needed if the size of the required shared memory is not known at the compilation time.
+In our case, we know exactly how much space is needed, so we will be using static alocation.
+To allocate the shared memory of size ``N``, one needs to add in the GPU kernel:
+
+.. code-block:: c++
+
+    __shared__ float s_x[N];
+
+The __shared__ modifier will tell the compiler that this array should be allocated in the shared memory space.
+Note that we used the ``s_`` prefix to the array.
+This is not necessary, but helps for the code transparency.
+
+We will also need to make sure that all threads in the block are done reading data and placing it into the shared memory.
+This can be done with the following function call inside the GPU kernel:
+
+.. code-block:: c++
+
+    void __syncthreads()
+
+Calling this function will block all the threads from execution until they reach the point where this function call is made.
+Note that ``__syncthreads()`` should be called unconditionally, from all threads in the thread block, so that this point in code can be reached by all the threads.
+
+In the following example, we will change the GPU kernel to use the shared memory to hold all the values needed for the current computational time step.
 
 .. typealong:: Use shared memory
 
-   .. tabs::
+    .. tabs::
 
-      .. tab:: CUDA: device owns the data
+        .. tab:: CUDA: device owns the data
 
-         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_2_remove_copy_calls.cu
-            :language: CUDA
+            .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_2_remove_copy_calls.cu
+                :language: CUDA
 
+        .. tab:: CUDA: use shared memory (solution)
 
-      .. tab:: CUDA: use shared memory (solution)
+            .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_3_shared_memory.cu
+                :language: CUDA
 
-         .. literalinclude:: ../examples/CUDA/HeatEquation/heat_equation_gpu_3_shared_memory.cu
-            :language: CUDA
+    1. Use the previous version of the code as a starting point.
+
+    2. Define the ``__shared__`` array in the device kernel.
+       The size should be big enough to accomodate the central points for the block, plus the two elements for each dimension --- one at each border.
+
+    3. Fill in all the central elements of the array by using all the threads in the block.
+
+    4. Use the threads that are next to the border of the block to fill the bordering parts of the array.
+       Make sure that you are not accessing the data outside the allocated global memory array.
+
+    5. Add blocking syncronization with ``__syncthreads();`` after all the data is read.
+
+    6. Change the compute part to use the shared memory instead of the global memory.

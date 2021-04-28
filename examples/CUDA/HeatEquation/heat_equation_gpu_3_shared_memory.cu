@@ -131,19 +131,13 @@ int main()
     // Main loop
     for (int n = 0; n < numSteps; n++)
     {
-        if (n % 2 == 0)
-        {
-            evolve_kernel<<<numBlocks, threadsPerBlock>>>(d_Un, d_Unp1, nx, ny, dx2, dy2, a*dt);
-        }
-        else
-        {
-            evolve_kernel<<<numBlocks, threadsPerBlock>>>(d_Unp1, d_Un, nx, ny, dx2, dy2, a*dt);
-        }
+        evolve_kernel<<<numBlocks, threadsPerBlock>>>(d_Un, d_Unp1, nx, ny, dx2, dy2, a*dt);
 
         // Write the output if needed
         if (n % outputEvery == 0)
         {
-            cudaError_t errorCode = cudaMemcpy(h_Un, d_Un, numElements*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaMemcpy(h_Un, d_Un, numElements*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaError_t errorCode = cudaGetLastError();
             if (errorCode != cudaSuccess)
             {
                 printf("Cuda error %d: %s\n", errorCode, cudaGetErrorString(errorCode));
@@ -153,6 +147,8 @@ int main()
             sprintf(filename, "heat_%04d.png", n);
             save_png(h_Un, nx, ny, filename, 'c');
         }
+
+        std::swap(d_Un, d_Unp1);
     }
 
     // Release the memory
