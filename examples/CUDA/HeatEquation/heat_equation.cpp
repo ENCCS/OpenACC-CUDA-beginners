@@ -1,9 +1,3 @@
-/* 2D heat equation
-
-   Copyright (C) 2014  CSC - IT Center for Science Ltd.
-
-*/
-
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,11 +52,11 @@ int main()
             float ds2 = (i - nx/2) * (i - nx/2) + (j - ny/2)*(j - ny/2);
             if (ds2 < radius2)
             {
-                Un[index] = 5.0;
+                Un[index] = 65.0;
             }
             else
             {
-                Un[index] = 65.0;
+                Un[index] = 5.0;
             }
         }
     }

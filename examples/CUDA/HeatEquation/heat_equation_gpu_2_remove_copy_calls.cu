@@ -1,9 +1,3 @@
-/* 2D heat equation
-
-   Copyright (C) 2014  CSC - IT Center for Science Ltd.
-
-*/
-
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
@@ -81,11 +75,11 @@ int main()
             float ds2 = (i - nx/2) * (i - nx/2) + (j - ny/2)*(j - ny/2);
             if (ds2 < radius2)
             {
-                h_Un[index] = 5.0;
+                h_Un[index] = 65.0;
             }
             else
             {
-                h_Un[index] = 65.0;
+                h_Un[index] = 5.0;
             }
         }
     }
@@ -105,23 +99,24 @@ int main()
     // Main loop
     for (int n = 0; n < numSteps; n++)
     {
-        if (n % 2 == 0)
-        {
-            evolve_kernel<<<numBlocks, threadsPerBlock>>>(d_Un, d_Unp1, nx, ny, dx2, dy2, a*dt);
-        }
-        else
-        {
-            evolve_kernel<<<numBlocks, threadsPerBlock>>>(d_Unp1, d_Un, nx, ny, dx2, dy2, a*dt);
-        }
+        evolve_kernel<<<numBlocks, threadsPerBlock>>>(d_Un, d_Unp1, nx, ny, dx2, dy2, a*dt);
 
         // Write the output if needed
         if (n % outputEvery == 0)
         {
             cudaMemcpy(h_Un, d_Un, numElements*sizeof(float), cudaMemcpyDeviceToHost);
+            cudaError_t errorCode = cudaGetLastError();
+            if (errorCode != cudaSuccess)
+            {
+                printf("Cuda error %d: %s\n", errorCode, cudaGetErrorString(errorCode));
+                exit(0);
+            }
             char filename[64];
             sprintf(filename, "heat_%04d.png", n);
             save_png(h_Un, nx, ny, filename, 'c');
         }
+
+        std::swap(d_Un, d_Unp1);
     }
 
     // Release the memory

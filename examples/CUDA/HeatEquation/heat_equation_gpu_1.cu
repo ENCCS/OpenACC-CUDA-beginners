@@ -1,9 +1,3 @@
-/* 2D heat equation
-
-   Copyright (C) 2014  CSC - IT Center for Science Ltd.
-
-*/
-
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,15 +29,15 @@ __global__ void evolve_kernel(const float* Un, float* Unp1, const int nx, const 
         int j = threadIdx.y + blockIdx.y*blockDim.y;
         if (j > 0 && j < ny - 1)
         {
-                const int index = getIndex(i, j, nx);
-                float uij = Un[index];
-                float uim1j = Un[getIndex(i-1, j, nx)];
-                float uijm1 = Un[getIndex(i, j-1, nx)];
-                float uip1j = Un[getIndex(i+1, j, nx)];
-                float uijp1 = Un[getIndex(i, j+1, nx)];
+            const int index = getIndex(i, j, nx);
+            float uij = Un[index];
+            float uim1j = Un[getIndex(i-1, j, nx)];
+            float uijm1 = Un[getIndex(i, j-1, nx)];
+            float uip1j = Un[getIndex(i+1, j, nx)];
+            float uijp1 = Un[getIndex(i, j+1, nx)];
 
-                // Explicit scheme
-                Unp1[index] = uij + aTimesDt * ( (uim1j - 2.0*uij + uip1j)/dx2 + (uijm1 - 2.0*uij + uijp1)/dy2 );
+            // Explicit scheme
+            Unp1[index] = uij + aTimesDt * ( (uim1j - 2.0*uij + uip1j)/dx2 + (uijm1 - 2.0*uij + uijp1)/dy2 );
         }
     }
 }
@@ -82,11 +76,11 @@ int main()
             float ds2 = (i - nx/2) * (i - nx/2) + (j - ny/2)*(j - ny/2);
             if (ds2 < radius2)
             {
-                h_Un[index] = 5.0;
+                h_Un[index] = 65.0;
             }
             else
             {
-                h_Un[index] = 65.0;
+                h_Un[index] = 5.0;
             }
         }
     }
@@ -117,6 +111,12 @@ int main()
         // Write the output if needed
         if (n % outputEvery == 0)
         {
+            cudaError_t errorCode = cudaGetLastError();
+            if (errorCode != cudaSuccess)
+            {
+                printf("Cuda error %d: %s\n", errorCode, cudaGetErrorString(errorCode));
+                exit(0);
+            }
             char filename[64];
             sprintf(filename, "heat_%04d.png", n);
             save_png(h_Un, nx, ny, filename, 'c');
