@@ -18,7 +18,7 @@ Solving heat equation with OpenACC
    performed
 
 Motivation for optimizing data movement
-=======================================
+---------------------------------------
 
 -  When dealing with an accelerator / GPU device attached to a PCIe bus,
    **optimizing data movement** is often **essential** to achieving good
@@ -32,7 +32,7 @@ Motivation for optimizing data movement
    5. Go back to 1!
 
 Data lifetimes
-==============
+--------------
 
 -  Typically data on the device has the same lifetime as the OpenACC
    construct (``parallel``, ``kernels``, ``data``) it is declared in
@@ -43,7 +43,7 @@ Data lifetimes
    before an explicit update has been made and vice versa
 
 Data constructs: data
-=====================
+---------------------
 
 -  Define a region with data declared in the device memory
 
@@ -60,7 +60,7 @@ Data constructs: data
    constructs
 
 Data construct: example
-=======================
+-----------------------
 
 .. container:: column
 
@@ -105,7 +105,7 @@ Data construct: example
 
 
 Data constructs: data clauses
-=============================
+-----------------------------
 
 .. container:: column
 
@@ -132,7 +132,7 @@ Data constructs: data clauses
 .. _data-constructs-data-clauses-1:
 
 Data constructs: data clauses
-=============================
+-----------------------------
 
 ``copy(var-list)``
    ``-``
@@ -146,7 +146,7 @@ Data constructs: data clauses
 .. _data-constructs-data-clauses-2:
 
 Data constructs: data clauses
-=============================
+-----------------------------
 
 .. container:: column
 
@@ -170,7 +170,7 @@ Data constructs: data clauses
 .. _data-constructs-data-clauses-3:
 
 Data constructs: data clauses
-=============================
+-----------------------------
 
 ``reduction(operator:var-list)``
    ``-``
@@ -186,7 +186,7 @@ Data constructs: data clauses
    the variable
 
 Reduction operators in C/C++ and Fortran
-========================================
+----------------------------------------
 
 =================== =============
 Arithmetic Operator Initial value
@@ -201,7 +201,7 @@ Arithmetic Operator Initial value
 .. _reduction-operators-in-cc-and-fortran-1:
 
 Reduction operators in C/C++ and Fortran
-========================================
+----------------------------------------
 
 =================== =============
 Arithmetic Operator Initial value
@@ -214,7 +214,7 @@ Arithmetic Operator Initial value
 =================== =============
 
 Reduction operators in C/C++ only
-=================================
+---------------------------------
 
 .. container:: column
 
@@ -236,7 +236,7 @@ Reduction operators in C/C++ only
    ================ =============
 
 Reduction operators in Fortran
-==============================
+------------------------------
 
 .. container:: column
 
@@ -260,7 +260,7 @@ Reduction operators in Fortran
    ================ =============
 
 Data specification
-==================
+------------------
 
 -  Data clauses specify functionality for different variables
 -  Overlapping data specifications are not allowed
@@ -273,7 +273,7 @@ Data specification
    multidimensional arrays etc.)
 
 Default data environment in compute constructs
-==============================================
+----------------------------------------------
 
 -  All variables used inside the ``parallel`` or ``kernels`` region will
    be treated as *implicit* variables if they are not present in any
@@ -287,7 +287,7 @@ Default data environment in compute constructs
    -  ``firstprivate`` clause in ``parallel``
 
 ``data`` construct: example
-===========================
+---------------------------
 
 .. container:: column
 
@@ -335,7 +335,7 @@ Default data environment in compute constructs
       !$acc end data
 
 Unstructured data regions
-=========================
+-------------------------
 
 -  Unstructured data regions enable one to handle cases where allocation
    and freeing is done in a different scope
@@ -351,7 +351,7 @@ Unstructured data regions
    -  Fortran: ``!$acc exit data [clauses]``
 
 Unstructured data
-=================
+-----------------
 
 .. code:: c
 
@@ -369,7 +369,7 @@ Unstructured data
    };
 
 Enter data clauses
-==================
+------------------
 
 .. container:: column
 
@@ -392,7 +392,7 @@ Enter data clauses
       device
 
 Exit data clauses
-=================
+-----------------
 
 .. container:: column
 
@@ -423,7 +423,7 @@ Exit data clauses
          *structured*) are zero
 
 Data directive: update
-======================
+----------------------
 
 -  Define variables to be updated within a data region between host and
    device memory
@@ -442,7 +442,7 @@ Data directive: update
 .. _data-directive-update-1:
 
 Data directive: update
-======================
+----------------------
 
 -  ``update`` is a single line executable directive
 -  Useful for producing snapshots of the device variables on the host or
@@ -457,7 +457,7 @@ Data directive: update
    -  Unstructured data regions
 
 ``update`` directive: example
-=============================
+-----------------------------
 
 .. container:: column
 
@@ -504,7 +504,7 @@ Data directive: update
       !$acc end data
 
 Data directive: declare
-=======================
+-----------------------
 
 -  Makes a variable resident in accelerator memory
 -  Added at the declaration of a variable
@@ -519,7 +519,7 @@ Data directive: declare
    -  ``link``
 
 Porting and managed memory
-==========================
+--------------------------
 
 .. container:: column
 
@@ -548,7 +548,7 @@ Porting and managed memory
               #pragma acc copyin (p.x[0:n]...
 
 Managed memory
-==============
+--------------
 
 -  Managed memory copies can be enabled on PGI compilers
 
@@ -562,7 +562,7 @@ Managed memory
       versions
 
 Summary
-=======
+-------
 
 -  Data directive
 

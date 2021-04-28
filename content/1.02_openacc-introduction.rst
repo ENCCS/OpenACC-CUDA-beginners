@@ -2,8 +2,9 @@
 
 Introduction to OpenACC
 =======================
+
 What is OpenACC ?
-=================
+-----------------
 
 -  OpenACC defines a set of compiler directives that allow code regions
    to be offloaded from a host CPU to be computed on a GPU
@@ -15,7 +16,7 @@ What is OpenACC ?
 -  More about OpenACC standard: `http://www.openacc.org`_
 
 OpenACC vs. CUDA/HIP
-====================
+--------------------
 
 -  Why OpenACC and not CUDA/HIP?
 
@@ -29,7 +30,7 @@ OpenACC vs. CUDA/HIP
    -  More optimization possibilities
 
 OpenACC execution model
-=======================
+-----------------------
 
 -  Host-directed execution with an attached accelerator
 
@@ -45,7 +46,7 @@ OpenACC execution model
 .. _openacc-execution-model-1:
 
 OpenACC execution model
-=======================
+-----------------------
 
 .. container:: column
 
@@ -59,7 +60,7 @@ OpenACC execution model
    .. image:: img/execution-model.png
 
 OpenACC data model
-==================
+------------------
 
 .. container:: column
 
@@ -76,7 +77,7 @@ OpenACC data model
    .. image:: img/data-movement.png
 
 OpenACC directive syntax
-========================
+------------------------
 
 ======= =============== =========== ==============
 \       sentinel        construct   clauses
@@ -97,7 +98,7 @@ Fortran ``!$acc``       ``kernels`` ``copy(data)``
    -  ``if (condition)``, ``async(handle)``
 
 Compiling an OpenACC program
-============================
+----------------------------
 
 -  Compilers that support OpenACC usually require an option that enables
    the feature
@@ -109,7 +110,7 @@ Compiling an OpenACC program
 -  Without these options a regular CPU version is compiled!
 
 OpenACC conditional compilation
-===============================
+-------------------------------
 
 -  Conditional compilation with ``_OPENACC`` macro:
 
@@ -126,7 +127,7 @@ OpenACC conditional compilation
    the compiler was released
 
 OpenACC internal control variables
-==================================
+----------------------------------
 
 -  OpenACC has internal control variables
 
@@ -135,7 +136,7 @@ OpenACC internal control variables
 .. _`http://www.openacc.org`: http://www.openacc.org/
 
 Runtime API functions
-=====================
+---------------------
 
 -  Low-level runtime API functions can be used to
 
@@ -151,10 +152,10 @@ Runtime API functions
       implementations)
 
 OpenACC compute constructs
-==========================
+--------------------------
 
 OpenACC levels of parallelism
-=============================
+-----------------------------
 
 .. container:: column
 
@@ -173,7 +174,7 @@ OpenACC levels of parallelism
 .. _openacc-compute-constructs-1:
 
 OpenACC compute constructs
-==========================
+--------------------------
 
 -  OpenACC includes two different approaches for defining parallel
    regions
@@ -189,7 +190,7 @@ OpenACC compute constructs
 -  With similar work sharing, both can perform equally well
 
 Compute constructs: ``kernels``
-===============================
+-------------------------------
 
 -  Define a region to be transferred to a sequence of kernels for
    execution on the accelerator device
@@ -202,7 +203,7 @@ Compute constructs: ``kernels``
 -  The *kernels* will be executed in a *sequential* order
 
 Example: ``kernels``
-====================
+--------------------
 
 .. container:: column
 
@@ -322,12 +323,12 @@ end kernels end subroutine accdaxpy
       call accdaxpy(65536, 3.14D0, x, y)
 
 Compiler diagnostics
-====================
+--------------------
 
 .. _compiler-diagnostics-1:
 
 Compiler diagnostics
-====================
+--------------------
 
 -  Compiler diagnostics is usually the first thing to check when
    starting the OpenACC work
@@ -357,7 +358,7 @@ heat.o: heat.F90
       tools
 
 Example: ``-Minfo``
-===================
+-------------------
 
 .. code:: bash
 
@@ -378,7 +379,7 @@ Example: ``-Minfo``
 .. _example--minfo-1:
 
 Example: ``-Minfo``
-===================
+-------------------
 
 .. code:: bash
 
@@ -401,7 +402,7 @@ Example: ``-Minfo``
         89, Loop is parallelizable
 
 Summary
-=======
+-------
 
 -  OpenACC is an directive-based extension to C/Fortran programming
    languages for accelerators
