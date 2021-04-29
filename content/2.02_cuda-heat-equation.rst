@@ -31,7 +31,7 @@ The values of spatial steps :math:`dx` and :math:`dy` are such that the final gr
 
     The grid (A) and the template (B) of the numerical scheme for the heat equation.
     Red dots indicate the grid nodes, where the values are taken from the boundary conditions.
-    Blask dots are internal grid nodes.
+    Black dots are internal grid nodes.
     The grid node in which the values is computes is shown in green.
     There are two examples of how the template (B) is applied to the grid (A).
 
@@ -87,24 +87,28 @@ Here, ``width`` is a width of a two-dimensional array, ``i`` and ``j`` are the t
 Since we are going to use non-trivial data access pattern in the following examples, it is good idea to constantly check for errors.
 Not to overload the code with extra checks, we are going to use the following function from the CUDA API:
 
-.. code-block:: c++
+.. signature:: |cudaGetLastError|
 
-    __host__​__device__​cudaError_t cudaGetLastError ( void )
+    .. code-block:: c++
 
-This function will check if there were any CUDA API errors in the previous calls and should return ``cudaSuccess`` if there were none.
+        __host__​ __device__​ cudaError_t cudaGetLastError(void)
+
+This function will check if there were any CUDA API errors in the previous calls and should return |cudaSuccess| if there were none.
 We will check this, and print an error message if this was not the case.
 In order to render a human-friendly string that describes an error, the following CUDA function will be used:
 
-.. code-block:: CUDA
+.. signature:: |cudaGetErrorString|
 
-    __host__​__device__​const char* cudaGetErrorString ( cudaError_t error )
+    .. code-block:: cuda
+
+        __host__​ __device__ ​const char* cudaGetErrorString(cudaError_t error)
 
 This will return a string, that we are going to print in case there were errors.
 
 We will also need to use the ``getIndex(..)`` function from the device code.
 To do so, we will need to ask a compiler to compile it for the device execution.
-This is done by adding a ``__device__`` qualifier to its definition, will make the function available in the device code but not available in the host code.
-Since we are also using it when populating the initial conditions, we also need a ``__host__`` qualifier.
+This is done by adding a |__device__| specifier to its definition, will make the function available in the device code but not available in the host code.
+Since we are also using it when populating the initial conditions, we also need a |__host__| specifier.
 
 .. typealong:: Initial CUDA port 
 
@@ -130,20 +134,27 @@ Since we are also using it when populating the initial conditions, we also need 
 
     3. At the beginning of the main loop, copy data to the GPU.
 
-    4. Add a ``__device__ __host__`` qualifiers to the ``getIndex(..)`` function definition.
+    4. Add a |__device__| and |__host__| specifiers to the ``getIndex(..)`` function definition.
 
-       Question: What will happen, if the ``__host__ __device__`` function has the following line in its definition: ``printf("%ld\n", 13);``?
+        .. challenge:: What will happen, if the ``__host__ __device__`` function has the following line in its definition: ``printf("%ld\n", 13);``?
 
-       1. Nothing. Everything will compile and execute fine.
-       2. The code will not compile --- one can not use ``printf()`` in the device code.
-       3. The code will compile with a warning, but will not execute.
-       4. The code will compile with a warning and will execute printing number "13" many times.
-       5. The code will compile with two warnings, but will not execute.
-       6. The code will compile with two warnings, and will execute printing number "13" many times.
+            1. Nothing. Everything will compile and execute fine.
 
-       Answer: The added line should cause compiler to issue a warning.
-       Since this line is in the ``__host__ __device__`` function, there are going to be two warnings: one from the CPU compiler, one from the GPU compiler.
-       All modern versions of CUDA allow printing from the kernels, althogh the order in which threads are printing is quite random.
+            2. The code will not compile --- one can not use ``printf()`` in the device code.
+
+            3. The code will compile with a warning, but will not execute.
+
+            4. The code will compile with a warning and will execute printing number "13" many times.
+
+            5. The code will compile with two warnings, but will not execute.
+
+            6. The code will compile with two warnings, and will execute printing number "13" many times.
+
+        .. solution::
+           
+            The added line should cause compiler to issue a warning.
+            Since this line is in the ``__host__ __device__`` function, there are going to be two warnings: one from the CPU compiler, one from the GPU compiler.
+            All modern versions of CUDA allow printing from the kernels, althogh the order in which threads are printing is quite random.
 
     4. Create a gpu kernel and move the double loop over coordinates into it.
        Change the loop indices to the components of the respective thread indices.
@@ -215,7 +226,7 @@ Shared memory is the cache memory that is shared between threads in a block.
 The access pattern in our GPU kernel is such that neighboring threads aggess neighboring data.
 This means that some of the data is accessed by neighboring threads.
 In fact, each value of the grid function, :math:`U^n_{ij}` is read 5 times --- once as the central point in the thread ``(i,j)`` and once as a side point in threads ``(i-1,j)``, ``(i+1,j)``, ``(i,j-1)`` and ``(i,j+1)``.
-What can be done instead is, at the beginning of the kernel call, we read the value of the central point into the shared memory.
+What can be done instead is, at the beginning of the kernel call, we read the value of the central point into the `shared memory <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory>`_.
 Than, we ask all the threads to wait until all the values are read.
 Once the data is ready, we proceed with the computation.
 Additionally, one will hate to take care of the extra values at the borders of the thread block, which we will see while working on the example.
@@ -235,14 +246,16 @@ Note that we used the ``s_`` prefix to the array.
 This is not necessary, but helps for the code transparency.
 
 We will also need to make sure that all threads in the block are done reading data and placing it into the shared memory.
-This can be done with the following function call inside the GPU kernel:
+This can be done with the call to |__syncthreads| function inside the GPU kernel:
 
-.. code-block:: c++
+.. signature:: |__syncthreads|
 
-    void __syncthreads()
+    .. code-block:: c++
+
+        void __syncthreads()
 
 Calling this function will block all the threads from execution until they reach the point where this function call is made.
-Note that ``__syncthreads()`` should be called unconditionally, from all threads in the thread block, so that this point in code can be reached by all the threads.
+Note that |__syncthreads| should be called unconditionally, from all threads in the thread block, so that this point in code can be reached by all the threads.
 
 In the following example, we will change the GPU kernel to use the shared memory to hold all the values needed for the current computational time step.
 
@@ -262,7 +275,7 @@ In the following example, we will change the GPU kernel to use the shared memory
 
     1. Use the previous version of the code as a starting point.
 
-    2. Define the ``__shared__`` array in the device kernel.
+    2. Define the |__shared__| array in the device kernel.
        The size should be big enough to accomodate the central points for the block, plus the two elements for each dimension --- one at each border.
 
     3. Fill in all the central elements of the array by using all the threads in the block.
@@ -270,6 +283,6 @@ In the following example, we will change the GPU kernel to use the shared memory
     4. Use the threads that are next to the border of the block to fill the bordering parts of the array.
        Make sure that you are not accessing the data outside the allocated global memory array.
 
-    5. Add blocking syncronization with ``__syncthreads();`` after all the data is read.
+    5. Add blocking syncronization with |__syncthreads()| after all the data is read.
 
     6. Change the compute part to use the shared memory instead of the global memory.

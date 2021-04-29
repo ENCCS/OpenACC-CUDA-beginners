@@ -17,53 +17,55 @@ class TypealongDirective(_BaseCRDirective):
 
 DIRECTIVES = [SignatureDirective, ParametersDirective, TypealongDirective]
 
-COMMANDS = [
-    "cudaMalloc",
+API_REFERENCES_FUNCTION = [
+    ("cudaGetDeviceCount", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__DEVICE.html#group__CUDART__DEVICE_1g18808e54893cfcaafefeab31a73cc55f"),
+    ("cudaGetDeviceProperties", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__DEVICE.html#group__CUDART__DEVICE_1g1bf9d625a931d657e08db2b4391170f0"),
+    ("cudaMalloc", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1g37d37965bfb4803b6d4e59ff26856356"),
+    ("cudaFree", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1ga042655cbbf3408f01061652a075e094"),
+    ("cudaMemcpy", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gc263dbe6574220cc776b45438fc351e8"),
+    ("__syncthreads", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#synchronization-functions"),
+    ("cudaGetLastError", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__ERROR.html#group__CUDART__ERROR_1g3529f94cb530a83a76613616782bd233"),
+    ("cudaGetErrorString", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__ERROR.html#group__CUDART__ERROR_1g4bc9e35a618dfd0877c29c8ee45148f1"),
 ]
 
-CTERM = """
+API_REFERENCES_FUNCTION_TERM = """
 .. |{command}| raw:: html
 
-   <a class="reference internal" href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html"><span class="xref std std-term"><code class="docutils literal notranslate">{command}(...)</code></span></a>
+   <a class="reference internal" href="{htmlref}"><span class="xref std std-term"><code class="docutils literal notranslate">{command}(..)</code></span></a>
 """
 
-VARIABLES = [
-    "PROJECT_BINARY_DIR",
-    "PROJECT_SOURCE_DIR",
-    "CMAKE_CURRENT_LIST_DIR",
-    "CMAKE_CURRENT_SOURCE_DIR",
+API_REFERENCES_VARIABLE = [
+    ("cudaError_t", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038"),
+    ("cudaSuccess", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038"),
+    ("cudaErrorInvalidDevice", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038"),
+    ("cudaDeviceProp", "https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html"),
+    ("cudaMemcpyKind", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g18fa99055ee694244a270e4d5101e95b"),
+    ("cudaMemcpyHostToHost", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g18fa99055ee694244a270e4d5101e95b"),
+    ("cudaMemcpyHostToDevice", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g18fa99055ee694244a270e4d5101e95b"),
+    ("cudaMemcpyDeviceToHost", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g18fa99055ee694244a270e4d5101e95b"),
+    ("cudaMemcpyDeviceToDevice", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g18fa99055ee694244a270e4d5101e95b"),
+    ("cudaMemcpyDefault", "https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g18fa99055ee694244a270e4d5101e95b"),
+    ("__global__", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#global"),
+    ("__device__", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-function-specifier"),
+    ("__host__", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#host"),
+    ("float3", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#built-in-vector-types"),
+    ("uint3", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#built-in-vector-types"),
+    ("dim3", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#dim3"),
+    ("__shared__", "https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory"),
 ]
 
-VTERM = """
-.. |{variable}| raw:: html
-
-   <a class="reference internal" href="https://cmake.org/cmake/help/latest/variable/{variable}.html"><span class="xref std std-term"><code class="docutils literal notranslate">{variable}</code></span></a>
-"""
-
-COMMANDS_IN_MODULES = [
-    ("cmake_print_variables", "CMakePrintHelpers"),
-    ("check_cxx_source_compiles", "CheckCXXSourceCompiles"),
-    ("check_cxx_compiler_flag", "CheckCXXCompilerFlag"),
-    ("check_c_source_runs", "CheckCSourceRuns"),
-    ("cmake_dependent_option", "CMakeDependentOption"),
-    ("pkg_search_module", "FindPkgConfig"),
-    ("FetchContent_Declare", "FetchContent"),
-    ("FetchContent_MakeAvailable", "FetchContent"),
-    ("FortranCInterface_VERIFY", "FortranCInterface"),
-    ("FortranCInterface_HEADER", "FortranCInterface"),
-]
-
-CinMTERM = """
+API_REFERENCES_VARIABLE_TERM = """
 .. |{command}| raw:: html
 
-   <a class="reference internal" href="https://cmake.org/cmake/help/latest/module/{module}.html"><span class="xref std std-term"><code class="docutils literal notranslate">{command}</code></span></a>
+   <a class="reference internal" href="{htmlref}"><span class="xref std std-term"><code class="docutils literal notranslate">{command}</code></span></a>
 """
 
 
 def cmake_glossary():
-    commands = "\n".join((CTERM.format(command=x) for x in COMMANDS))
-    variables = "\n".join((VTERM.format(variable=x) for x in VARIABLES))
-    commands_in_modules = "\n".join(
-        (CinMTERM.format(command=x[0], module=x[1]) for x in COMMANDS_IN_MODULES)
+    api_references_function = "\n".join(
+        (API_REFERENCES_FUNCTION_TERM.format(command=x[0], htmlref=x[1]) for x in API_REFERENCES_FUNCTION)
     )
-    return commands + variables + commands_in_modules
+    api_references_variable = "\n".join(
+        (API_REFERENCES_VARIABLE_TERM.format(command=x[0], htmlref=x[1]) for x in API_REFERENCES_VARIABLE)
+    )
+    return api_references_variable + api_references_function
