@@ -17,10 +17,10 @@ int main(void)
         vecB[i] = vecA[i] * vecA[i];
     }
 
-#pragma acc parallel loop 
-    for (i = 0; i < NX; i++) {
-        vecC[i] = vecA[i] * vecB[i];
-    }
+    /* TODO:
+     * Implement vector addition on device with OpenACC
+     * vecC = vecA + vecB
+     */
 
     sum = 0.0;
     /* Compute the check value */

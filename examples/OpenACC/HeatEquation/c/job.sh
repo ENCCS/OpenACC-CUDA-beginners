@@ -2,7 +2,6 @@
 #SBATCH --account=snic2021-22-274
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-task=1
-#SBATCH --gres=gpu:v100:1
 #SBATCH --time=00:15:00
 
 module use /proj/snic2021-22-274/hpc_sdk/modulefiles
