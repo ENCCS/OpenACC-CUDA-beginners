@@ -26,6 +26,16 @@ With the area limited, one can approximate the function :math:`U(x,y,t)` with th
 The grid is usually defined as a set of equally separated points, such as :math:`t_n=n\cdot dt`, :math:`x_i=x_0+i\cdot dx` and :math:`y_i=y_0+j\cdot dy`.
 The values of spatial steps :math:`dx` and :math:`dy` are such that the final grid points are :math:`x_1` and :math:`y_1` for two spatial dimensions respectively.
 
+.. figure:: img/NumericalScheme.png
+    :align: center
+
+    The grid (A) and the template (B) of the numerical scheme for the heat equation.
+    Red dots indicate the grid nodes, where the values are taken from the boundary conditions.
+    Blask dots are internal grid nodes.
+    The grid node in which the values is computes is shown in green.
+    There are two examples of how the template (B) is applied to the grid (A).
+
+
 With the grid defined, one can use the following explicit approximation for the differential equation:
 
 .. math::
