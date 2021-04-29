@@ -4,7 +4,7 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --time=00:15:00
 
-# load nvhpc module
+# load nvhpc
 module use /proj/snic2021-22-274/hpc_sdk/modulefiles
 module load nvhpc
 

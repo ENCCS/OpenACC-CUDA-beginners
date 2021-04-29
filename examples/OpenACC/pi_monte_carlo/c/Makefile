@@ -2,7 +2,7 @@ COMP=pgi
 
 ifeq ($(COMP),pgi)
 CC=pgcc
-CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia -lcurand
+CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia -L/proj/snic2021-22-274/CUDA/11.2.0/lib64 -lcurand
 RUN=
 endif
 
