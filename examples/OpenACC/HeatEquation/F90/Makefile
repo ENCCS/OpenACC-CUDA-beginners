@@ -3,8 +3,9 @@ COMP=pgi
 ifeq ($(COMP),pgi)
 CC=pgcc
 FC=pgf90
-CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia
+CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia -I /proj/snic2021-22-274/libpng/1.5.30/include
 FCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia
+LFLAGS=-L/proj/snic2021-22-274/libpng/1.5.30/lib -lpng
 # FCFLAGS=-g -Mbounds
 RUN=
 endif
@@ -18,7 +19,7 @@ all: $(EXE)
 heat_equation.o: pngwriter.o heat_equation.F90 
 
 $(EXE): $(OBJS) .ALWAYSEXEC
-	$(FC) $(FCFLAGS) $(OBJS) -o $@  /usr/lib64/libpng15.so.15
+	$(FC) $(FCFLAGS) $(OBJS) $(LFLAGS) -o $@  
 
 pngwriter.o: pngwriter.c
 	$(CC) $(CCFLAGS) -c $< -o $@
