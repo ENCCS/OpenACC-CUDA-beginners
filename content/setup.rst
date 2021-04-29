@@ -24,7 +24,8 @@ installations of CUDA and compilers supporting OpenACC.
 Running on Tetralith
 --------------------
 
-- how to log in
+how to log in
+^^^^^^^^^^^^^
 
 On any Linux systems and Mac OS system, using command ::
 
@@ -62,14 +63,17 @@ In this workshop, we will recommend to use project folder i.e.  **/proj/snic2021
  $ git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git
  $ cd OpenACC-CUDA-beginners
 
-- modules
+modules system
+^^^^^^^^^^^^^^
+
 Likes other HPC center, modules system is used tomaintain and use large set of programs at NSC. The main usages of modules system are presented below ::
+
  module --help         General help with module commands
-
+ 
  module avail          List the available modules and recommendations
-
+ 
  module load ...       Load the selected modules into your session (can also write: module add)
-
+ 
  module list           List your currently loaded modules (will be flushed at logout)
 
  module rm ...         Remove selected modules from your session
@@ -80,7 +84,8 @@ Likes other HPC center, modules system is used tomaintain and use large set of p
 
 More information about module system at NSC can be found at https://www.nsc.liu.se/software/modules
 
-- submitting jobs, interactive vs batch, allocation and reservation
+submitting jobs, interactive vs batch, allocation and reservation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 NSC uses the Slurm workload Manage as the workload management and job scheduling. You can either run program interactively
 
@@ -93,9 +98,11 @@ NSC uses the Slurm workload Manage as the workload management and job scheduling
      ...
      
 or in batch mode with a job script ::
+
      $ sbatch job.sh
 
-- Summary 
+Summary 
+^^^^^^^
 
 Here is a sample process to run OpenACC program on Tetralith ::
 
@@ -127,6 +134,7 @@ Here is a sample process to run OpenACC program on Tetralith ::
    
   # or directly use "srun ... ./sum"
   tetralith $ srun -n 1  --gpus-per-task=1 -t 10 -A snic2021-22-274 --reservation=openacc-cuda-workshop-2021-05-04 ./sum
+  Reduction sum: 1.2020569031119108
 
   # or run interactive
   tetralith $ interactive -n 1 -c 32 --gpus-per-task=1 -t 60 -A snic2021-22-274 --reservation=openacc-cuda-workshop-2021-05-04
