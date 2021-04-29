@@ -35,7 +35,8 @@ to login on the Tetralith (**tetralith.nsc.liu.se**) at NSC supercomputing cente
 
 On Windows system, you need to install **putty** and then login on the Tetralith, more details can be found at https://www.nsc.liu.se/support/systems/tetralith-getting-started
 
-- file system - where to run jobs
+file system - where to run jobs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When you login on the Tetralith system, you can read the welcome messages (motd) ::
 
@@ -101,6 +102,21 @@ or in batch mode with a job script ::
 
      $ sbatch job.sh
 
+where the job script *job.sh* specifies the project ID, wall-clock time, number of node etc. ::
+     
+  $cat job.sh
+   #!/bin/bash
+   #SBATCH --account=snic2021-22-274
+   #SBATCH --ntasks=1
+   #SBATCH --gpus-per-task=1
+   #SBATCH --time=00:15:00
+
+   module use /proj/snic2021-22-274/hpc_sdk/modulefiles
+   module load nvhpc
+
+   srun ./sum
+
+  
 Summary 
 ^^^^^^^
 
@@ -131,8 +147,10 @@ Here is a sample process to run OpenACC program on Tetralith ::
 
   # run the binary "sum" on GPU, 
   tetralith $ sbatch job.sh
-   
-  # or directly use "srun ... ./sum"
+  tetralith $ cat slurm-<job_id>.out
+    Reduction sum: 1.2020569031119108
+
+  # or directly use "srun ... ./sum",
   tetralith $ srun -n 1  --gpus-per-task=1 -t 10 -A snic2021-22-274 --reservation=openacc-cuda-workshop-2021-05-04 ./sum
   Reduction sum: 1.2020569031119108
 
@@ -143,7 +161,7 @@ Here is a sample process to run OpenACC program on Tetralith ::
   srun: Step created for job 13170656
   
   # Note: compute node has been assigned, check using command "hostname"
-  # should direct run the binary
+  # should directly run the binary
   n1141 $ ./sum
    Reduction sum: 1.2020569031119108
      
