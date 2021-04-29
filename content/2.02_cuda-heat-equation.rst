@@ -73,7 +73,7 @@ Porting the code
 Even though the problem is two-dimensional, we are still going to use one-dimensional arrays in CUDA.
 This allows for an explicit control of the memory access pattern.
 We want neighboring threads to access the neighboring elements of an array, so that the limited amounts of cache will be used efficiently.
-For that, we add a helper function that computes the one-dimensional index from two indices:
+For that, we will use a helper function that computes the one-dimensional index from two indices:
 
 .. code-block:: c++
 
@@ -84,8 +84,15 @@ For that, we add a helper function that computes the one-dimensional index from 
 
 Here, ``width`` is a width of a two-dimensional array, ``i`` and ``j`` are the two-dimensional indices.
 
+.. figure:: img/2Dto1DArrayMapping.png
+    :align: center
+    :scale: 50 %
+
+    Mapping of the two-dimensional array into one-dimensional.
+    The numbers represent the number of the element in 1D array.
+
 Since we are going to use non-trivial data access pattern in the following examples, it is good idea to constantly check for errors.
-Not to overload the code with extra checks, we are going to use the following function from the CUDA API:
+Not to overload the code with extra checks after every API call, we are going to use the following function from the CUDA API:
 
 .. signature:: |cudaGetLastError|
 
@@ -95,7 +102,7 @@ Not to overload the code with extra checks, we are going to use the following fu
 
 This function will check if there were any CUDA API errors in the previous calls and should return |cudaSuccess| if there were none.
 We will check this, and print an error message if this was not the case.
-In order to render a human-friendly string that describes an error, the following CUDA function will be used:
+In order to render a human-friendly string that describes an error, the |cudaGetErrorString| function from the CUDA API will be used:
 
 .. signature:: |cudaGetErrorString|
 
@@ -108,7 +115,7 @@ This will return a string, that we are going to print in case there were errors.
 We will also need to use the ``getIndex(..)`` function from the device code.
 To do so, we will need to ask a compiler to compile it for the device execution.
 This is done by adding a |__device__| specifier to its definition, will make the function available in the device code but not available in the host code.
-Since we are also using it when populating the initial conditions, we also need a |__host__| specifier.
+Since we are also using it when populating the initial conditions, we need a |__host__| specifier for this function as well.
 
 .. typealong:: Initial CUDA port 
 
@@ -128,7 +135,7 @@ Since we are also using it when populating the initial conditions, we also need 
 
     2. Prepare kernel configuration parameters.
        Since we have a double loop over coordinates, it is convinient to map it to two-dimensional block of threads.
-       Note that the total number of threads per block will be multiple of the number of threads in each dimensions, so it is easy to assign too many threads to a single block.
+       Note that the total number of threads per block will be multiple of the number of threads in each dimensions, so it is easy to assign too many threads to a single block: this number is limited by 1024 for all NVidia GPUs.
        Decide the size of the block and compute the required number of blocks and create corresponding ``dim3`` variables.
        It is convinient to use ``#define`` to specify the block sizes in each direction, since we are going to need them in the GPU code.
 
@@ -166,10 +173,10 @@ Since we are also using it when populating the initial conditions, we also need 
 Moving data ownership to the device
 -----------------------------------
 
-There is a lot of room for improvements in the previous implementation.
-The most obvous part is the host-device and device-to host data transfers.
+There is a lot of possibilities to improve the performance of in the current implementation.
+One of them is to reduce the number of the host-device and device-to host data transfers.
 Even though the transfers are relatively fast, they are much slower than accessing the memory in the kernel call.
-So eliminating the transfers is one of the most basic and most effitient improvements.
+Eliminating the transfers is one of the most basic and most effitient improvements.
 
 Note that in more complicated cases, eliminating the data transfers between host and device can be challenging.
 For instance, in cases where not all the computational procedures are ported to the GPU.
@@ -180,7 +187,7 @@ One should also consider using CPU efficiently: if everything is computed on a d
 This is a waste of resources.
 In some cases one can copy some data to the host memory, do the computations and copy data back while the device is still computing.
 
-Remove unnessesary host to device and device to host data transfers, can also be looked at as the change in the data ownerhip.
+Removing unnessesary host to device and device to host data transfers, can also be looked at as the change in the data ownerhip.
 Now the device holds the data, do all computational procedures and, occasionally, the data is copied back to the CPU for e.g. output.
 This is exactly the case in our code: there is nothing to compute between two consequative time steps, so there is no need to copy data to the host on each step.
 The data only needed on the host for the output.

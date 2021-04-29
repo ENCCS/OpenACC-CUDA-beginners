@@ -255,7 +255,7 @@ They are, respectively, index of thread in a block, index of the block and the s
     :align: center
     :scale: 50 %
 
-    A simple example of the division of threads (green squares) in blocks (yellow rectangles).
+    A simple example of the division of threads (green squares) in blocks (cyan rectangles).
     The equally-sized blocks contain four threads each.
     The thread index starts from zero in each block.
     Hence the "global" thread index should be computed from the thread index, block index and block size.
@@ -287,7 +287,7 @@ To have an access to the buffers, we need pass the device pointers to the kernel
 
 Now the kernel is defined, we can call it from the host code.
 Since the kernel will be executed in a grid of threads, so the kernel launch should be supplied with the configuration of the grid.
-In CUDA this is done by adding so-called `kernel cofiguration <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model>`_, ``<<<numBlocks, threadsPerBlock>>>``, to the function call:
+In CUDA this is done by adding `kernel cofiguration <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model>`_, ``<<<numBlocks, threadsPerBlock>>>``, to the function call:
 
 .. code-block:: cuda
 
@@ -297,8 +297,9 @@ Here, ``numBlocks`` is the total number of thread blocks in the grid, ``threadsP
 Note, that these values can be integers, or can be two-dimensional of three-dimensional vectors, if this is more suitable for the kernel.
 It is natural to use the one-dimensional layout for the vector addition problem, which is itself one-dimensional.
 In this case, the kernel configuration can be specified by two integer values.
-The threadsPerBlock can be arbitrary chosen, but should be larger that the number of CUDA cores in the SM.
-Good starting values are 256 or 512.
+The threadsPerBlock can be arbitrary chosen.
+It should be larger that the number of CUDA cores in the SM to fully occupy the device, but lower than the limit of 1024 (see `the technical specifications <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities>`_).
+Values of 256 or 512 are frequently used.
 Since one has to make sure that the total number of threads (i.e. ``numBlocks*threadsPerBlock`` is greater or equal to the size of the vector.
 So ``numBlocks`` can be defined as ``numElements/threadsPerBlock + 1``, where ``numElements`` is a number of elements in the vector.
 
