@@ -213,7 +213,9 @@ Here is how you can work on the exercises:
 
 - New code or text (markdown) cells can be created by clicking the "+Code" and "+Text" buttons,
   or through the keyboard shortcut ``CTRL-m b``. Cells can be deleted by ``CTRL-m d``.
-  Cells are executed by pressing ``CTRL-ENTER`` or pressing the Play button.
+  Cells are executed by pressing ``SHIFT-ENTER`` or pressing the Play button. Pressing instead
+  ``ALT-ENTER`` runs a cell and creates a new one underneath, while ``CTRL-ENTER`` runs the cell
+  and stays on the same cell.
 - General shell commands can be entered into a code cell by prepending it with
   exclamation mark (e.g. ``!ls``). Some shell commands have corresponding "magic" commands (e.g. "%ls"),
   and some commands need to use the magic form. In particular, to change directory you need ``%cd some/path``.
