@@ -5,6 +5,11 @@ CC=pgcc
 CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia -I/proj/snic2021-22-274/libpng/1.5.30/include
 LFLAGS=-L/proj/snic2021-22-274/libpng/1.5.30/lib -lpng
 RUN=
+else ifeq ($(COMP),gnu)
+CC=gcc
+CCFLAGS=-g -O3 -fopenacc
+LFLAGS=-lpng
+RUN=
 endif
 
 EXE=heat

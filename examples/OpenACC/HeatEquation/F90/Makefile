@@ -8,6 +8,12 @@ FCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia
 LFLAGS=-L/proj/snic2021-22-274/libpng/1.5.30/lib -lpng
 # FCFLAGS=-g -Mbounds
 RUN=
+else ifeq ($(COMP),gnu)
+CC=gcc
+FC=gfortran
+CCFLAGS=-g -O3 -fopenacc
+LFLAGS=-lpng
+RUN=
 endif
 
 EXE=heat
