@@ -224,7 +224,9 @@ Here is how you can work on the exercises:
 - In the file browser, navigate to the subfolder of the exercise you wish to work on and
   click on the three dots next to the directory and select "Copy path" (see red arrow in image below).
 - In a code cell, paste the path into a ``%cd`` magic command to change directory.
-- After changing directory, you can for example compile code with Makefiles by ``!make``.
+- After changing directory, you can for example compile code with Makefiles by ``!make``. **Note**:
+  all prepared makefiles have GPI and GNU compilation options, and you have to change the top line to
+  ``COMP=gnu`` when compiling on Google Colab.
 - You can open a text editor by double-clicking a file. This opens an editor on the right of the
   notebook and you can edit it there and save by hitting ``CTRL-s`` or going through the *File* menu.
   **Note**: it is for some reason impossible to open files with ``.cu`` ending in the Colab editor,
