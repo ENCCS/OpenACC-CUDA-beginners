@@ -1,20 +1,16 @@
-COMP=pgi
+COMP=gcc
 
-ifeq ($(COMP),pgi)
-CC=pgcc
-CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia -I/proj/snic2021-22-274/libpng/1.5.30/include
-LFLAGS=-L/proj/snic2021-22-274/libpng/1.5.30/lib -lpng
+ifeq ($(COMP),gcc)
+CC=gcc
+CCFLAGS=-g -O3 -fopenacc
+LFLAGS=
 RUN=
 endif
 
 EXE=heat
-OBJS=pngwriter.o heat_equation.o 
+OBJS=heat_equation.o 
 
 all: $(EXE)
-
-# Dependencies
-heat_equation.o: heat_equation.c
-pngwriter.o: pngwriter.c
 
 $(EXE): $(OBJS) .ALWAYSEXEC
 	$(CC) $(CCFLAGS) $(OBJS) $(LFLAGS) -o $@
@@ -24,6 +20,6 @@ $(EXE): $(OBJS) .ALWAYSEXEC
 
 clean:
 	-/bin/rm -f $(EXE)
-	-/bin/rm -f a.out *.o *~ *.png
+	-/bin/rm -f a.out *.o *~ 
 
 .ALWAYSEXEC:

@@ -3,7 +3,7 @@
 #include <openacc.h>
 #endif
 
-#define NX 102400
+#define NX 10240000
 
 int main(void)
 {
@@ -17,7 +17,7 @@ int main(void)
         vecB[i] = vecA[i] * vecA[i];
     }
 
-#pragma acc kernels
+#pragma acc kernels loop
     for (i = 0; i < NX; i++) {
         vecC[i] = vecA[i] * vecB[i];
     }

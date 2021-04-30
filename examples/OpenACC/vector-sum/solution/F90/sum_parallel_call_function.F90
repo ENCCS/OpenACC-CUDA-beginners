@@ -22,8 +22,7 @@ program vectorsum
   do i = 1, nx
      vecC(i) = mul(vecA(i), vecB(i))
   end do
-  !$acc end loop
-  !$acc end parallel loop
+  !$acc end parallel 
 
   ! Compute the check value
   write(*,*) 'Reduction sum: ', sum(vecC)
@@ -31,8 +30,8 @@ program vectorsum
 contains
 
   real(kind=rk) function mul(a, b)
+    implicit none      
 !$acc routine seq
-    implicit none
     real(kind=rk), intent(in) :: a, b
     
     mul = a * b

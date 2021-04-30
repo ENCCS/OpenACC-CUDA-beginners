@@ -1,8 +1,8 @@
-COMP=pgi
+COMP=gcc
 
-ifeq ($(COMP),pgi)
-CC=pgcc
-CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia -L/proj/snic2021-22-274/CUDA/11.2.0/lib64 -lcurand
+ifeq ($(COMP),gcc)
+CC=gcc
+CCFLAGS=-g -O3 -fopenacc -lcurand
 RUN=
 endif
 

@@ -22,8 +22,7 @@ program vectorsum
   do i = 1, nx
      vecC(i) = vecA(i) * vecB(i)
   end do
-  !$acc end loop
-  !$acc end parallel loop
+  !$acc end parallel
 
   ! Compute the check value
   write(*,*) 'Reduction sum: ', sum(vecC)
