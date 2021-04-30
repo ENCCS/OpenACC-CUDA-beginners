@@ -203,7 +203,7 @@ where you can get access to GPUs in the cloud through Jupyter notebooks.
   Choose GPU as a Hardware accelerator. It might take a minute for your notebook to
   connect to a GPU.
 - In the first code cell (the field with a play button on the left), type
-  `nvidia-smi` and press the play button (or hit SHIFT-ENTER) to get
+  `!nvidia-smi` and press the play button (or hit SHIFT-ENTER) to get
   information on the GPU - you will likely have been assigned a K80.
 - Clone the lesson repository to get access to the exercise material:
   `!git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git`
