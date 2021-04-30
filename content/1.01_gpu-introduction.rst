@@ -94,7 +94,7 @@ Accelerator model today
 
 - Local memory
 
-  - Smaller than main memory (32 GB in Puhti)
+  - Smaller than main memory
 
   - Very high bandwidth (up to 900 GB/s)
 
@@ -319,7 +319,7 @@ Amdahl's law
   
 
 
-where $F$ is the parallel fraction and $N$ is the number of cores
+where :math:`F` is the parallel fraction and :math:`N` is the number of cores
 
 
 .. figure:: img/amdahl2.png

@@ -75,7 +75,7 @@ This allows for an explicit control of the memory access pattern.
 We want neighboring threads to access the neighboring elements of an array, so that the limited amounts of cache will be used efficiently.
 For that, we will use a helper function that computes the one-dimensional index from two indices:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     getIndex(const int i, const int j, const int width)
     {
@@ -96,7 +96,7 @@ Not to overload the code with extra checks after every API call, we are going to
 
 .. signature:: |cudaGetLastError|
 
-    .. code-block:: c++
+    .. code-block:: cuda
 
         __host__​ __device__​ cudaError_t cudaGetLastError(void)
 
@@ -244,7 +244,7 @@ The dynamic allocation is needed if the size of the required shared memory is no
 In our case, we know exactly how much space is needed, so we will be using static alocation.
 To allocate the shared memory of size ``N``, one needs to add in the GPU kernel:
 
-.. code-block:: c++
+.. code-block:: cpp
 
     __shared__ float s_x[N];
 
@@ -257,7 +257,7 @@ This can be done with the call to |__syncthreads| function inside the GPU kernel
 
 .. signature:: |__syncthreads|
 
-    .. code-block:: c++
+    .. code-block:: cpp
 
         void __syncthreads()
 

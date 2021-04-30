@@ -24,21 +24,23 @@ installations of CUDA and compilers supporting OpenACC.
 Running on Tetralith
 --------------------
 
-how to log in
+How to log in
 ^^^^^^^^^^^^^
 
-On any Linux systems and Mac OS system, using command ::
+On any Linux or Mac OS system, you can log in to Tetralith using the following
+command in a terminal::
 
   ssh  <username>@tetralith.nsc.liu.se
 
-to login on the Tetralith (**tetralith.nsc.liu.se**) at NSC supercomputing center.
+On Windows systems, you need to install
+`PuTTY <https://www.chiark.greenend.org.uk/~sgtatham/putty/>`__ to log in
+to Tetralith. More details can be found at
+https://www.nsc.liu.se/support/systems/tetralith-getting-started
 
-On Windows system, you need to install **putty** and then login on the Tetralith, more details can be found at https://www.nsc.liu.se/support/systems/tetralith-getting-started
+Where to run jobs
+^^^^^^^^^^^^^^^^^
 
-file system - where to run jobs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When you login on the Tetralith system, you can read the welcome messages (motd) ::
+When you log in on the Tetralith system, you can read the welcome messages (motd) ::
 
  Welcome to NSC and Tetralith!
 
@@ -58,16 +60,23 @@ When you login on the Tetralith system, you can read the welcome messages (motd)
  To tweak job priorities, extend timelimits and reserve nodes: see
  https://www.nsc.liu.se/support/batch-jobs/boost-tools/
 
-In this workshop, we will recommend to use project folder i.e.  **/proj/snic2021-22-274/users/<your_username>** to do these exercises :: 
+In this workshop, we recommend that you use your project folder,
+i.e. **/proj/snic2021-22-274/users/<your_username>**, to do the exercises:: 
 
- $ cd /proj/snic2021-22-274/users/<your_username>
- $ git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git
- $ cd OpenACC-CUDA-beginners
+ cd /proj/snic2021-22-274/users/<your_username>
 
-modules system
-^^^^^^^^^^^^^^
+In your project directory, download the exercises by cloning the lesson
+repository::
 
-Likes other HPC center, modules system is used tomaintain and use large set of programs at NSC. The main usages of modules system are presented below ::
+  git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git
+  cd OpenACC-CUDA-beginners
+
+Module system
+^^^^^^^^^^^^^
+
+As on other HPC centers, modules are used to maintain and use large
+set of programs on Tetralith at NSC. The main module commands are
+presented below. ::
 
  module --help         General help with module commands
  
@@ -83,28 +92,39 @@ Likes other HPC center, modules system is used tomaintain and use large set of p
 
  module use ...        Use the modulefile which is not installed in default path
 
-More information about module system at NSC can be found at https://www.nsc.liu.se/software/modules
+More information about module system at NSC can be found at
+https://www.nsc.liu.se/software/modules
 
-submitting jobs, interactive vs batch, allocation and reservation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Build scripts for many of the exercises in this lesson rely on the
+`NVIDIA HPC SDK <https://developer.nvidia.com/hpc-sdk>`__. To load
+this environment, type::
 
-NSC uses the Slurm workload Manage as the workload management and job scheduling. You can either run program interactively
+  # Load the nvhpc module for using pgcc/pgf90 compiler
+  module use /proj/snic2021-22-274/hpc_sdk/modulefiles
+  module add nvhpc
+
+How to submit jobs
+^^^^^^^^^^^^^^^^^^
+
+NSC uses the Slurm workload manager for job
+scheduling. You can either run program interactively:
 
   .. code-block::
          
      # book a GPU compute node for 1 hour
      # using project ID "snic2021-22-274" for the workshop
      # and reservation "openacc-cuda-workshop-2021-05-04" for first day
-     $ interactive -n 1 -c 32 --gpus-per-task=1 -t 60 -A snic2021-22-274 --reservation=openacc-cuda-workshop-2021-05-04
+     interactive -n 1 -c 32 --gpus-per-task=1 -t 60 -A snic2021-22-274 --reservation=openacc-cuda-workshop-2021-05-04
      ...
      
-or in batch mode with a job script ::
+or in batch mode with a job script::
 
-     $ sbatch job.sh
+     sbatch job.sh
 
-where the job script *job.sh* specifies the project ID, wall-clock time, number of node etc. ::
+where the job script *job.sh* specifies the project ID, wall-clock time, number of node etc:
+
+.. code-block:: bash
      
-  $cat job.sh
    #!/bin/bash
    #SBATCH --account=snic2021-22-274
    #SBATCH --ntasks=1
@@ -120,9 +140,11 @@ where the job script *job.sh* specifies the project ID, wall-clock time, number 
 Summary 
 ^^^^^^^
 
-Here is a sample process to run OpenACC program on Tetralith ::
+Here is a sample process to run OpenACC program on Tetralith:
 
-  # login on Tetralib from local computer
+.. code-block:: bash
+
+  # login on Tetralith from local computer
   local_computer $ ssh <your_username>@tetralith.nsc.liu.se
   ...
   # use /proj/snic2021-22-274 folder

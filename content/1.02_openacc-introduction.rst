@@ -205,125 +205,118 @@ Compute constructs: ``kernels``
 Example: ``kernels``
 --------------------
 
-.. container:: column
+.. tabs::
 
-   .. rubric:: C/C++
-            :name: cc
+   .. tab:: C/C++
 
-   .. code:: c
+      .. code:: c
 
-      /* Compute y=a*x+y */
-      void accdaxpy(int n, double a,
-                    const double * restrict x,
-                    double * restrict y)
-      {
-          #pragma acc kernels
-          for (int j=0; j<n; ++j)
-              y[j] += a * x[j];
-      }
+         /* Compute y=a*x+y */
+	 void accdaxpy(int n, double a,
+		       const double * restrict x,
+		       double * restrict y)
+	 {
+	     #pragma acc kernels
+	     for (int j=0; j<n; ++j)
+		 y[j] += a * x[j];
+	 }
 
-      ...
+	 ...
 
-      /* An example call to accdaxpy */
-      accdaxpy(1<<16, 3.14, x, y);
-
-.. raw:: html
-
-   <div class="column">
-
-Fortran
--------
-
-\```fortran ! Compute y=a*x+y subroutine accdaxpy(n, a, x, y) integer ::
-n, j real(kind=8) :: a, x(n), y(n)
-
-!\ :math:`acc kernels  do j = 1,n  y(j) = y(j) + a * x(j)  end do  !`\ acc
-end kernels end subroutine accdaxpy
-
-..
-
-! An example call to accdaxpy call accdaxpy(65536, 3.14D0, x, y)
-
-::
-
-   </div>
+	 /* An example call to accdaxpy */
+	 accdaxpy(1<<16, 3.14, x, y);
 
 
-   # Compute constructs: `parallel`
+   .. tab:: Fortran
 
-   - Define a region to be executed on the accelerator device
-       - C/C++: `#pragma acc parallel [clauses]`
-       - Fortran: `!$acc parallel [clauses]`
-   - Without any *work sharing* constructs, the whole region is executed
-     *redundantly* multiple times
-       - Given a sequence of loop nests, each loop nest may be executed
-         simultaneously
+      .. code:: fortran
 
+	 ! Compute y=a*x+y
+	 subroutine accdaxpy(n, a, x, y)
+         
+             integer :: n, j
+             real(kind=8) :: a, x(n), y(n)
 
-   # Work sharing construct: `loop`
+	     !$acc kernels
+             do j = 1,n
+                 y(j) = y(j) + a * x(j)
+             end do  
+             !$acc end kernels
+	 end subroutine accdaxpy
 
-   - Define a loop to be parallelized
-       - C/C++: `#pragma acc loop [clauses]`
-       - Fortran: `!$acc loop [clauses]`
-       - Must be followed by a C/C++ or Fortran loop construct.
-       - Combined constructs with `parallel` and `kernels`
-           - `#pragma acc kernels loop` / `!$acc kernels loop`
-           - `#pragma acc parallel loop / !$acc parallel loop`
-   - Similar in functionality to OpenMP `for/do` construct
-   - Loop index variables are `private` variables by default
+         ! An example call to accdaxpy
+	 call accdaxpy(65536, 3.14D0, x, y)
 
 
-   # Example: `parallel`
 
-   <div class="column">
-   ## C/C++
+Compute constructs: `parallel`
+------------------------------
 
-   ```c
-   /* Compute y=a*x+y */
-   void accdaxpy(int n, double a,
-                 const double * restrict x,
-                 double * restrict y)
-   {
-       #pragma acc parallel loop
-       for (int j=0; j<n; ++j)
-           y[j] += a * x[j];
-   }
+- Define a region to be executed on the accelerator device
+    - C/C++: `#pragma acc parallel [clauses]`
+    - Fortran: `!$acc parallel [clauses]`
+- Without any *work sharing* constructs, the whole region is executed
+  *redundantly* multiple times
+    - Given a sequence of loop nests, each loop nest may be executed
+      simultaneously
 
-   ...
 
-   /* An example call to accdaxpy */
-   accdaxpy(1<<16, 3.14, x, y);
+Work sharing construct: `loop`
+------------------------------
 
-.. raw:: html
+- Define a loop to be parallelized
+    - C/C++: `#pragma acc loop [clauses]`
+    - Fortran: `!$acc loop [clauses]`
+    - Must be followed by a C/C++ or Fortran loop construct.
+    - Combined constructs with `parallel` and `kernels`
+	- `#pragma acc kernels loop` / `!$acc kernels loop`
+	- `#pragma acc parallel loop / !$acc parallel loop`
+- Similar in functionality to OpenMP `for/do` construct
+- Loop index variables are `private` variables by default
 
-   </div>
 
-.. container:: column
+Example: `parallel`
+^^^^^^^^^^^^^^^^^^^
 
-   .. rubric:: Fortran
-            :name: fortran
+.. tabs::
 
-   .. code:: fortran
+   .. tab:: C/C++
 
-      ! Compute y=a*x+y
-      subroutine accdaxpy(n, a, x, y)
-        integer :: n, j
-        real(kind=8) :: a, x(n), y(n)
+      .. code:: c
 
-        !$acc parallel loop
-        do j = 1,n
-           y(j) = y(j) + a * x(j)
-        end do
-        !$acc end parallel loop
-      end subroutine accdaxpy
+         /* Compute y=a*x+y */
+	 void accdaxpy(int n, double a,
+		       const double * restrict x,
+		       double * restrict y)
+	 {
+	     #pragma acc parallel loop
+	     for (int j=0; j<n; ++j)
+		 y[j] += a * x[j];
+         }
 
-      ...
+	 /* An example call to accdaxpy */
+	 accdaxpy(1<<16, 3.14, x, y);
 
-      ! An example call to accdaxpy
-      call accdaxpy(65536, 3.14D0, x, y)
+   .. tab:: Fortran
 
-Compiler diagnostics
---------------------
+      .. code:: fortran
+
+         ! Compute y=a*x+y
+	 subroutine accdaxpy(n, a, x, y)
+	   integer :: n, j
+	   real(kind=8) :: a, x(n), y(n)
+
+	   !$acc parallel loop
+	   do j = 1,n
+	      y(j) = y(j) + a * x(j)
+	   end do
+	   !$acc end parallel loop
+	 end subroutine accdaxpy
+
+	 ...
+
+	 ! An example call to accdaxpy
+	 call accdaxpy(65536, 3.14D0, x, y)
 
 .. _compiler-diagnostics-1:
 
@@ -363,6 +356,7 @@ Example: ``-Minfo``
 .. code:: bash
 
    $ pgcc -fast -Minfo=all -c util.c
+
    malloc_2d:
         28, Loop not vectorized: data dependency
             Loop unrolled 8 times
@@ -384,6 +378,7 @@ Example: ``-Minfo``
 .. code:: bash
 
    $ pgcc -acc -Minfo=all doubleloops.c
+
    init:
         38, Memory zero idiom, loop replaced by call to __c_mzero8
         44, Memory set idiom, loop replaced by call to __c_mset8
