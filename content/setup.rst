@@ -227,7 +227,9 @@ Here is how you can work on the exercises:
 - After changing directory, you can for example compile code with Makefiles by ``!make``.
 - You can open a text editor by double-clicking a file. This opens an editor on the right of the
   notebook and you can edit it there and save by hitting ``CTRL-s`` or going through the *File* menu.
-
+  **Note**: it is for some reason impossible to open files with ``.cu`` ending in the Colab editor,
+  so open instead the symbolic links with ``.cpp`` ending when working on these files. 
+  
 .. image:: img/colab.png
    :scale: 50%	   
 
