@@ -40,8 +40,7 @@ OpenACC vs. CUDA/HIP
 How can OpenACC port code to GPU?
 --------------------------------
 
-- Compilers that support OpenACC usually require an option that enables
-   the feature
+- Compilers that support OpenACC usually require an option that enables the feature
 
    -  PGI (now NVIDIA HPC SDK): ``-acc``
    -  Cray: ``-hacc``
@@ -62,7 +61,7 @@ How can OpenACC port code to GPU?
 - OpenACC execution model
 
    -  Host-directed execution with an attached accelerator
-   -  Large part of the program is usually executed by the host
+   -  Part of the program is usually executed by the host
    -  Computationally intensive parts are *offloaded* to the accelerator
       that executes *parallel regions*
 
@@ -74,13 +73,13 @@ OpenACC directive syntax
 \       sentinel        construct   clauses
 ======= =============== =========== ==============
 C/C++   ``#pragma acc`` ``data``    ``copy(data)``
-                        ``update``  ``host(data)``
-                        ``kernels`` 
-                        ``parallel``  
+\        \              ``update``  ``host(data)``
+\        \              ``kernels``   \
+\        \              ``parallel``  \
 Fortran ``!$acc``       ``data``    ``copy(data)``
-                        ``update``  ``host(data)``
-                        ``kernels``
-                        ``parallel``
+\       \               ``update``  ``host(data)``
+\       \               ``kernels``  \
+\       \               ``parallel`` \
 ======= =============== =========== ==============
 
 -  OpenACC uses compiler directives for defining compute regions (and
@@ -99,7 +98,7 @@ Fortran ``!$acc``       ``data``    ``copy(data)``
 
    .. tabs::
 
-      .. tab:: c
+      .. tab:: cpu
 
          .. literalinclude:: ../examples/OpenACC/vector-sum/solution/c/sum.c
                         :language: c
@@ -113,30 +112,6 @@ Fortran ``!$acc``       ``data``    ``copy(data)``
 
          .. literalinclude:: ../examples/OpenACC/vector-sum/solution/c/sum_kernels.c
                         :language: c
-
-Compiler diagnostics
---------------------
-
--  Compiler diagnostics is usually the first thing to check when
-   starting the OpenACC work
-
-   -  It can tell you what operations were actually performed
-   -  Data copies that were made
-   -  If and how the loops were parallelized
-
--  The diagnostics is very compiler dependent
-
-   -  Compiler flags
-   -  Level and formatting of information
-
-
--  Diagnostics is controlled by compiler flag ``-Minfo=option``
--  Useful options:
-
-   -  ``accel`` – operations related to the accelerator
-   -  ``all`` – print all compiler output
-   -  ``intensity`` – print loop computational intensity info
-
 
 .. _compiler-diagnostics-1:
 
@@ -162,9 +137,6 @@ Compiler diagnostics
    -  ``accel`` – operations related to the accelerator
    -  ``all`` – print all compiler output
    -  ``intensity`` – print loop computational intensity info
-   -  ``ccff`` – add extra information to the object files for use by
-      tools
-
 
 Example: ``-Minfo``
 -------------------
