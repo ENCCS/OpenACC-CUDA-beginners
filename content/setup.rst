@@ -1,4 +1,4 @@
-.. _setup
+.. _setup:
 
 Setup
 =====
@@ -190,4 +190,42 @@ Here is a sample process to run OpenACC program on Tetralith:
 
 Running on Google Colab
 -----------------------
+
+If you do not have access to any HPC clusters with GPUs, a fallback option
+can be to use the `Google Colab service <https://colab.research.google.com/>`__
+where you can get access to GPUs in the cloud through Jupyter notebooks.
+**Note: This requires that you have a Google account.**
+
+- First go to https://colab.research.google.com/ and log in with your Google account.
+- Then click *New Notebook*, and after it opens rename it by clicking on the name
+  field at the top.
+- To get access to a GPU, click on the *Runtime* menu and select *Change runtime type*.
+  Choose GPU as a Hardware accelerator. It might take a minute for your notebook to
+  connect to a GPU.
+- In the first code cell (the field with a play button on the left), type
+  `!nvidia-smi` and press the play button (or hit SHIFT-ENTER) to get
+  information on the GPU - you will likely have been assigned a K80.
+- Clone the lesson repository to get access to the exercise material:
+  `!git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git`
+
+All work on Google Colab needs to be done through a Jupyter notebook.
+Here is how you can work on the exercises:
+
+- New code or text (markdown) cells can be created by clicking the "+Code" and "+Text" buttons,
+  or through the keyboard shortcut ``CTRL-m b``. Cells can be deleted by ``CTRL-m d``.
+  Cells are executed by pressing ``CTRL-ENTER`` or pressing the Play button.
+- General shell commands can be entered into a code cell by prepending it with
+  exclamation mark (e.g. ``!ls``). Some shell commands have corresponding "magic" commands (e.g. "%ls"),
+  and some commands need to use the magic form. In particular, to change directory you need ``%cd some/path``.
+- Explore the directory structure by clicking on the *Files* symbol in the left-hand
+  panel and navigate the *OpenACC-CUDA-beginners / examples* directory (see red arrow in image below).
+- In the file browser, navigate to the subfolder of the exercise you wish to work on and
+  click on the three dots next to the directory and select "Copy path" (see red arrow in image below).
+- In a code cell, paste the path into a ``%cd`` magic command to change directory.
+- After changing directory, you can for example compile code with Makefiles by ``!make``.
+- You can open a text editor by double-clicking a file. This opens an editor on the right of the
+  notebook and you can edit it there and save by hitting ``CTRL-s`` or going through the *File* menu.
+
+.. image:: img/colab.png
+   :scale: 50%	   
 
