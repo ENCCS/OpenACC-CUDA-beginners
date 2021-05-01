@@ -61,14 +61,14 @@ float gpu_pi(int n)
             if (istat != CURAND_STATUS_SUCCESS) printf("Error in curandGenerate: %d\n", istat);
             istat = curandGenerateUniform(g, y, n);
             if (istat != CURAND_STATUS_SUCCESS) printf("Error in curandGenerate: %d\n", istat);      
-        
-            #pragma acc parallel loop reduction(+:inside)
-            for (i = 0; i < n; i++) {
-                if (x[i]*x[i] + y[i]*y[i] < 1.0) {
-                    inside++;
-                }
+        }        
+        #pragma acc parallel loop reduction(+:inside)
+        for (i = 0; i < n; i++) {
+            if (x[i]*x[i] + y[i]*y[i] < 1.0) {
+                inside++;
             }
         }
+        
     }
     free(x);
     free(y);

@@ -4,4 +4,6 @@
 .jupyter_cache
 jupyter_execute
 content/__pycache__/
+examples/*/*/*.o
+examples/*/*/*~
 .vscode

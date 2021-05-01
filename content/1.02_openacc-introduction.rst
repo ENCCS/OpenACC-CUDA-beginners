@@ -3,6 +3,14 @@
 Introduction to OpenACC
 =======================
 
+- Serial Computing
+
+ .. image:: img/serial_openaccc.png
+
+- Porting to GPU
+
+ .. image:: img/parallel_openacc.png
+
 What is OpenACC ?
 -----------------
 
