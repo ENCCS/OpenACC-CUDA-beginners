@@ -17,11 +17,13 @@ int main(void)
         vecB[i] = vecA[i] * vecA[i];
     }
 
+#pragma acc data copy(vecA,vecB,vecC)
+{
 #pragma acc kernels
     for (i = 0; i < NX; i++) {
         vecC[i] = vecA[i] * vecB[i];
     }
-
+}
     sum = 0.0;
     /* Compute the check value */
     for (i = 0; i < NX; i++) {

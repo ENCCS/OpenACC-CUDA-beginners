@@ -7,6 +7,7 @@
 module use /proj/snic2021-22-274/hpc_sdk/modulefiles
 module load nvhpc
 
+export PGI_ACC_TIME=1
 srun ./sum
 
 # Submit to the batch job queue with the command:

@@ -17,6 +17,8 @@ int main(void)
         vecB[i] = vecA[i] * vecA[i];
     }
 
+#pragma acc data copy(vecA,vecB,vecC)
+{
 #pragma acc parallel
     {
 #pragma acc loop
@@ -24,7 +26,7 @@ int main(void)
             vecC[i] = vecA[i] * vecB[i];
         }
     }
-
+}
     sum = 0.0;
     /* Compute the check value */
     for (i = 0; i < NX; i++) {

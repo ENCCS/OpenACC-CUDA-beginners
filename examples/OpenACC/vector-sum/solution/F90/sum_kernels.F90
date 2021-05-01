@@ -17,11 +17,13 @@ program vectorsum
      vecB(i) = vecA(i)**2
   end do
 
+  !$acc data copy(vecA,vecB,vecC)
   !$acc kernels
   do i = 1, nx
      vecC(i) = vecA(i) * vecB(i)
   end do
   !$acc end kernels
+  !$acc end data 
 
   ! Compute the check value
   write(*,*) 'Reduction sum: ', sum(vecC)
