@@ -77,150 +77,25 @@ Otimizing data movement
    the device until deallocation takes place
 
 
-Data construct: example
------------------------
-
-.. typealong:: Heat equation
-
-   .. tabs::
-
-      .. tab:: cpu
-
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/c/heat_equation.c
-                                    :language: c
-
-      .. tab:: OpenACC parallel loop
-
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_1.c
-                                    :language: c
-
-      .. tab:: OpenACC loop collapse
-
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_2.c
-                                    :language: c
-
-      .. tab:: OpenACC data create
-
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_data_1.c
-                                                :language: c
-
-
-   
- .. code :: c
-    
-    for (int n = 0; n < numSteps; n++)
-    {
-       /// Going through the entire area
-      #pragma acc parallel loop collapse(2) copyin(Un[0:nx][0:ny]) copyout(Unp1[0:nx][0:ny])
-        for (int i = 1; i < nx-1; i++)
-        {
-            for (int j = 1; j < ny-1; j++)
-            {
-               float uij = Un[i][j];
-               // Explicit scheme
-               Unp1[i][j] = uij + a * dt * ( (Un[i-1][j] - 2.0*uij + Un[i+1][j])/dx2 
-                                           + (Un[i][j-1] - 2.0*uij + Un[i][j+1])/dy2 );
-            }
-        }
-
-
-  .. code :: bash
-    time(us): 16,877
-       93: data region reached 1000 times
-        42: kernel launched 1000 times
-            grid: [2]  block: [128]
-            elapsed time(us): total=12,437 max=50 min=11 avg=12
-        93: data copyin transfers: 500
-             device time(us): total=8,572 max=45 min=16 avg=17
-        107: data copyout transfers: 500
-             device time(us): total=8,305 max=23 min=16 avg=16
-
- .. code :: c
-
-  #pragma acc data copyin(Un[0:nx][0:ny]) create(Unp1[0:nx][0:ny])
- {
-    for (int n = 0; n < numSteps; n++)
-    {
-        // Going through the entire area
-        #pragma acc parallel loop collapse(2)
-        for (int i = 1; i < nx-1; i++)
-            for (int j = 1; j < ny-1; j++)            
-              Unp1[i][j] = ...
-  
-   if (n % outputEvery == 0)  {
-   #pragma acc update host(Un[0:nx][0:ny])
-            save_png(Un[0], nx, ny, filename, 'c');
-    }
-   #pragma acc parallel loop collapse(2)
-              for (int i = 1; i < nx; i++) 
-        {
-          for (int j = 1; j < ny; j++)
-            Un[i][j] = Unp1[i][j];
-        }
-    }    
- }
-
- .. code :: c
-        time(us): 151
-    93: data region reached 2 times
-        42: kernel launched 2 times
-            grid: [2]  block: [128]
-            elapsed time(us): total=72 max=49 min=23 avg=36
-        93: data copyin transfers: 1
-             device time(us): total=45 max=45 min=45 avg=45
-    115: update directive reached 5 times
-        115: data copyout transfers: 5
-             device time(us): total=106 max=22 min=20 avg=21
-
-
 Data constructs: data clauses
 -----------------------------
 
-   ``present(var-list)`` 
+ -  ``present(var-list)``  **on entry/exit:** assume that memory is allocated and that data is present on the device
 
-   - **on entry/exit:** assume that memory is allocated and that data is present on the device
+ - ``create(var-list)``  **on entry:** allocate memory on the device, unless it was already
+      present  **on exit:** deallocate memory on the device, if it was allocated on entry
 
-   ``create(var-list)``
-
-   -  **on entry:** allocate memory on the device, unless it was already
-      present
-   -  **on exit:** deallocate memory on the device, if it was allocated
-      on entry
-
-``copy(var-list)``
-
--  **on entry:** if data is present on the device on entry, behave as
-   with the ``present`` clause, otherwise allocate memory on the device
-   and copy data from the host to the device.
--  **on exit:** copy data from the device to the host and deallocate
+ - ``copy(var-list)`` **on entry:** if data is present on the device on entry, behave as   with the ``present`` clause, otherwise allocate memory on the device  and copy data from the host to the device.  **on exit:** copy data from the device to the host and deallocate
    memory on the device if it was allocated on entry
 
-   ``copyin(var-list)``
-
-   -  **on entry:** same as ``copy`` on entry
-   -  **on exit:** deallocate memory on the device if it was allocated
+- ``copyin(var-list)`` **on entry:** same as ``copy`` on entry, **on exit:** deallocate memory on the device if it was allocated
       on entry
 
-  ``copyout(var-list)``
-
-   -  **on entry:** if data is present on the device on entry, behave as
-      with the ``present`` clause, otherwise allocate memory on the
-      device
-   -  **on exit:** same as ``copy`` on exit
+-  ``copyout(var-list)`` **on entry:** if data is present on the device on entry, behave as
+      with the ``present`` clause, otherwise allocate memory on the device **on exit:** same as ``copy`` on exit
 
 
-``reduction(operator:var-list)``
-
-- the operator can be ``+,-,*,max,min``
--  Performs reduction on the (scalar) variables in list
--  Private reduction variable is created for each gang’s partial result
-
-   -  initialised to operators initial value
-
--  After parallel region the reduction operation is applied to the
-   private variables and the result is aggregated to the shared variable
-   *and* the aggregated result is combined with the original value of
-   the variable
+- ``reduction(operator:var-list)`` the operator can be ``+,-,*,max,min``, Performs reduction on the (scalar) variables in list
 
 
 Data specification
@@ -381,49 +256,131 @@ Data directive: declare
    -  ``device_resident``
    -  ``link``
 
-Porting and managed memory
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Data construct: example
+-----------------------
 
-.. container:: column
+ .. code :: c
+   const int N=100;
+   #pragma acc data copy(a[0:N])
+   {  
+    #pragma acc parallel loop present(a)
+    for (int i=0; i<N; i++)
+        a[i] = a[i] + 1;
+   }
 
-   -  Porting a code with complicated data structures can be challenging
-      because every field in type has to be copied explicitly
-   -  Recent GPUs have *Unified Memory* and support for page faults
+   ...
+   #pragma acc data copyout(a[0:N]), copyin(b[0:N])
+   {
+    #pragma acc parallel loop present(a,b)
+    for (int i=0; i<N; i++)
+        a[i] = b[i] + 1;
+   }
 
-.. container:: column
+   ...
+   #pragma acc data copyout(a[0:N]), create(b[0:N])
+   {
+    #pragma acc parallel loop
+    for (int i=0; i<N; i++)
+        b[i] = i * 2.0;
 
-   .. code:: c
+    #pragma acc parallel loop present(a,b)
+    for (int i=0; i<N; i++)
+        a[i] = b[i] + 1;
+   }
 
-      typedef struct points {
-          double x, y;
-          int n;
-      }
 
-      void init_point() {
-          points p;
+.. typealong:: Heat equation
 
-          #pragma acc data create(p)
-          {
-              p.size = n;
-              p.x = (double)malloc(...
-              p.y = (double)malloc(...
-              #pragma acc update device(p)
-              #pragma acc copyin (p.x[0:n]...
+   .. tabs::
 
-Managed memory
-^^^^^^^^^^^^^^
+      .. tab:: cpu
 
--  Managed memory copies can be enabled on PGI compilers
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/c/heat_equation.c
+                                                :language: c
 
-   -  Pascal (P100): ``--ta=tesla,cc60,managed``
-   -  Volta (V100): ``--ta=tesla,cc70,managed``
+      .. tab:: OpenACC parallel loop
 
--  For full benefits Pascal or Volta generation GPU is needed
--  Performance depends on the memory access patterns
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_1.c
+                                                :language: c
 
-   -  For some cases performance is comparable with explicitly tuned
-      versions
+      .. tab:: OpenACC loop collapse
 
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_2.c
+                                                :language: c
+
+      .. tab:: OpenACC data create
+
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_data_1.c
+                                                            :language: c
+
+Data construct: Heat equation
+-----------------------------
+
+ .. code :: c
+
+    for (int n = 0; n < numSteps; n++)
+    {
+       /// Going through the entire area
+      #pragma acc parallel loop collapse(2) copyin(Un[0:nx][0:ny]) copyout(Unp1[0:nx][0:ny])
+        for (int i = 1; i < nx-1; i++)
+        {
+            for (int j = 1; j < ny-1; j++)
+            {
+               float uij = Un[i][j];
+               // Explicit scheme
+               Unp1[i][j] = uij + a * dt * ( (Un[i-1][j] - 2.0*uij + Un[i+1][j])/dx2
+                                           + (Un[i][j-1] - 2.0*uij + Un[i][j+1])/dy2 );
+            }
+        }
+
+
+  .. code :: bash
+         time(us): 16,877
+       93: data region reached 1000 times
+        42: kernel launched 1000 times
+            grid: [2]  block: [128]
+            elapsed time(us): total=12,437 max=50 min=11 avg=12
+        93: data copyin transfers: 500
+             device time(us): total=8,572 max=45 min=16 avg=17
+        107: data copyout transfers: 500
+             device time(us): total=8,305 max=23 min=16 avg=16
+
+ .. code :: c
+
+  #pragma acc data copyin(Un[0:nx][0:ny]) create(Unp1[0:nx][0:ny])
+ {
+    for (int n = 0; n < numSteps; n++)
+    {
+        // Going through the entire area
+        #pragma acc parallel loop collapse(2)
+        for (int i = 1; i < nx-1; i++)
+            for (int j = 1; j < ny-1; j++)
+              Unp1[i][j] = ...
+
+   if (n % outputEvery == 0)  {
+   #pragma acc update host(Un[0:nx][0:ny])
+            save_png(Un[0], nx, ny, filename, 'c');
+    }
+   #pragma acc parallel loop collapse(2)
+              for (int i = 1; i < nx; i++)
+        {
+          for (int j = 1; j < ny; j++)
+            Un[i][j] = Unp1[i][j];
+        }
+    }
+ }
+
+ .. code :: bash
+            time(us): 151
+    93: data region reached 2 times
+        42: kernel launched 2 times
+            grid: [2]  block: [128]
+            elapsed time(us): total=72 max=49 min=23 avg=36
+        93: data copyin transfers: 1
+             device time(us): total=45 max=45 min=45 avg=45
+    115: update directive reached 5 times
+        115: data copyout transfers: 5
+             device time(us): total=106 max=22 min=20 avg=21
 
 
 Optimize Loop performance
