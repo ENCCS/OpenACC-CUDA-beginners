@@ -69,18 +69,18 @@ How can OpenACC port code to GPU?
 OpenACC directive syntax
 ------------------------
 
-======= =============== =========== ==============
-\       sentinel        construct   clauses
-======= =============== =========== ==============
-C/C++   ``#pragma acc`` ``data``    ``copy(data)``
-\        \              ``update``  ``host(data)``
-\        \              ``kernels``   \
-\        \              ``parallel``  \
-Fortran ``!$acc``       ``data``    ``copy(data)``
-\       \               ``update``  ``host(data)``
-\       \               ``kernels``  \
-\       \               ``parallel`` \
-======= =============== =========== ==============
+======= =============== =========== ============== ================
+\       sentinel        construct   clauses          \
+======= =============== =========== ============== ================
+C/C++   ``#pragma acc`` ``data``    ``copy(data)`` data model
+\        \              ``update``  ``host(data)`` data model 
+\        \              ``kernels``   \            execution model  
+\        \              ``parallel``  \            execution model
+Fortran ``!$acc``       ``data``    ``copy(data)`` data model
+\       \               ``update``  ``host(data)`` data model
+\       \               ``kernels``  \             execution model
+\       \               ``parallel`` \             execution model
+======= =============== =========== ============== ================
 
 -  OpenACC uses compiler directives for defining compute regions (and
    data transfers) that are to be performed on a GPU
@@ -92,6 +92,78 @@ Fortran ``!$acc``       ``data``    ``copy(data)``
 -  Often used clauses
 
    -  ``if (condition)``, ``async(handle)``
+
+OpenACC data model
+------------------
+-  Define a region with data declared in the device memory
+
+   -  C/C++: ``#pragma acc data [clauses]`` 
+   -  Fortran: ``!$acc data [clauses]``
+   -  clauses can be ``copy``, ``copyin``, ``copyout``, and ``present``
+
+-  Data transfers take place
+
+   -  from the **host** to the **device** upon entry to the region
+   -  from the **device** to the **host** upon exit from the region
+
+-  Functionality defined by *data clauses*
+-  *Data clauses* can also be used in ``kernels`` and ``parallel``
+   constructs
+
+OpenACC execution model
+-----------------------
+
+-  OpenACC includes two different approaches for defining parallel
+   regions
+
+   -  ``parallel`` defines a region to be executed on an accelerator.
+      Work sharing *parallelism* has to be defined *manually*. Good
+      tuning prospects.
+   -  ``kernels`` defines a region to be transferred into a series of
+      kernels to be executed in *sequence* on an accelerator. Work
+      sharing parallelism is defined *automatically* for the separate
+      kernels, but tuning prospects limited.
+
+-  With similar work sharing, both can perform equally well
+
+
+Compute constructs: ``kernels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+-  Define a region to be transferred to a sequence of kernels for
+   execution on the accelerator device
+
+   -  C/C++: ``#pragma acc kernels [clauses]``
+   -  Fortran: ``!$acc kernels [clauses]``
+
+-  Each separate *loop nest* inside the region will be converted into a
+   separate *parallel kernel*
+-  The *kernels* will be executed in a *sequential* order
+
+Compute constructs: ^^parallel``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Define a region to be executed on the accelerator device
+    - C/C++: ``#pragma acc parallel [clauses]``
+    - Fortran: ``!$acc parallel [clauses]``
+- Without any *work sharing* constructs, the whole region is executed
+  *redundantly* multiple times
+    - Given a sequence of loop nests, each loop nest may be executed
+      simultaneously
+
+
+Work sharing construct: ``loop``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Define a loop to be parallelized
+    - C/C++: ``#pragma acc loop [clauses]``
+    - Fortran: ``!$acc loop [clauses]``
+    - Must be followed by a C/C++ or Fortran loop construct.
+    - Combined constructs with ``parallel`` and ``kernels``
+        - ``#pragma acc kernels loop / !$acc kernels loop``
+        - ``#pragma acc parallel loop / !$acc parallel loop``
+- Similar in functionality to OpenMP ``for/do`` construct
+- Loop index variables are ``private`` variables by default
 
 
 .. typealong:: Adding two vector 
@@ -139,7 +211,7 @@ Compiler diagnostics
    -  ``intensity`` – print loop computational intensity info
 
 Example: ``-Minfo``
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 .. code:: bash
 
@@ -192,69 +264,11 @@ Example: ``PGI_ACC_TIME=1``
  Reduction sum: 1.2020569031119108
 
 
-OpenACC compute constructs
---------------------------
-
--  OpenACC includes two different approaches for defining parallel
-   regions
-
-   -  ``parallel`` defines a region to be executed on an accelerator.
-      Work sharing *parallelism* has to be defined *manually*. Good
-      tuning prospects.
-   -  ``kernels`` defines a region to be transferred into a series of
-      kernels to be executed in *sequence* on an accelerator. Work
-      sharing parallelism is defined *automatically* for the separate
-      kernels, but tuning prospects limited.
-
--  With similar work sharing, both can perform equally well
-
-
-Compute constructs: ``kernels``
--------------------------------
-
--  Define a region to be transferred to a sequence of kernels for
-   execution on the accelerator device
-
-   -  C/C++: ``#pragma acc kernels [clauses]``
-   -  Fortran: ``!$acc kernels [clauses]``
-
--  Each separate *loop nest* inside the region will be converted into a
-   separate *parallel kernel*
--  The *kernels* will be executed in a *sequential* order
-
-
-Compute constructs: `parallel`
-------------------------------
-
-- Define a region to be executed on the accelerator device
-    - C/C++: `#pragma acc parallel [clauses]`
-    - Fortran: `!$acc parallel [clauses]`
-- Without any *work sharing* constructs, the whole region is executed
-  *redundantly* multiple times
-    - Given a sequence of loop nests, each loop nest may be executed
-      simultaneously
-
-
-Work sharing construct: `loop`
-------------------------------
-
-- Define a loop to be parallelized
-    - C/C++: `#pragma acc loop [clauses]`
-    - Fortran: `!$acc loop [clauses]`
-    - Must be followed by a C/C++ or Fortran loop construct.
-    - Combined constructs with `parallel` and `kernels`
-	- `#pragma acc kernels loop` / `!$acc kernels loop`
-	- `#pragma acc parallel loop / !$acc parallel loop`
-- Similar in functionality to OpenMP `for/do` construct
-- Loop index variables are `private` variables by default
-
-
 Summary
 -------
 
 -  OpenACC is an directive-based extension to C/Fortran programming
    languages for accelerators
--  Supports separate memory on the accelerator
--  Compute constructs: parallel and kernels
+-  Compute constructs: data, parallel and kernels
 -  Compiler diagnostics
 
