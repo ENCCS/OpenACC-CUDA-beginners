@@ -319,112 +319,30 @@ Data construct: Heat equation
 
 Optimize Loop performance
 -------------------------
-The compiler has analyzed the loops in our two main functions and scheduled the iterations of the loops to run in parallel on our GPU and Multicore CPU. The compiler is usually pretty good at choosing how to break up loop iterations to run well on parallel accelerators, but sometimes we can eke out just a little more performance by guiding the compiler to make specific choices. First, let's look at the choices the compiler made for us. We'll focus on the calcNext routine, but you should look at the swap routine too. Here's the compiler feedback for that routine
 
- .. code :: bash
+- The compiler is usually pretty good at choosing how to break up loop iterations to run well on parallel accelerators.
 
- calcNext:
-     48, Generating copyin(A[:m*n])
-         Accelerator kernel generated
-         Generating Tesla code
-         49, #pragma acc loop gang  blockIdx.x 
-             Generating reduction(max:error)
-         51, #pragma acc loop vector(12)  threadIdx.x 
-     48, Generating implicit copy(error)
-         Generating copyout(Anew[:m*n])
-     51, Loop is parallelizable
-  
+- Sometimes we can obtain a little more performance by guiding the compiler to make specific choices. 
 
-The main loops on interest in calcNext are on lines 49 and 51. I see that the compiler has told me what loop clauses it chose for each of those loops. The outermost loop is treated as a gang loop, meaning it broke that loop up into chunks that can be spread out across the GPU or CPU cores easily. If you have programmed in CUDA before, you'll recognize that the compiler is mapping this loop to the CUDA thread blocks. The innermost loop is mapped instead to vector parallelism. You can think of a vector as some number of data cells that get the same operation applied to them at the same time. On any modern processor technology you need this mixture of coarse grained and fine grained parallelism to effectively use the hardware. Vector (fine grained) parallelism can operate extremely efficiently when performing the same operation on a bunch of data, but there's limits to how long a vector you can build. Gang (coarse grained) parallelism is highly scalable, because each chunk of work can operate completely independently of each other chunk, making it ideal for allowing processor cores to operate independently of each other.
-
-
-Collapse Clause
-^^^^^^^^^^^^^^^
-The collapse clause allows us to transform a multi-dimensional loop nest into a single-dimensional loop. This process is helpful for increasing the overall length (which usually increases parallelism) of our loops, and will often help with memory locality. In our case, instead of looking at our loops as n and m iteration loops, it looks at them as a single n * m iteration loop, which gives it more flexibility in how to break up the iterations. Let's look at the syntax.
-
- .. code :: bash
-
- #pragma acc parallel loop collapse( N )
- Where N is the number of loops to collapse.
-
- #pragma acc parallel loop collapse( 3 )
- for(int i = 0; i < N; i++)
- {
-    for(int j = 0; j < M; j++)
-    {
-        for(int k = 0; k < Q; k++)
-        {
-            < loop code >
-        }
-    }
- }
-
-
-Let's look at another clause that may help our code.
-
-Tile Clause
-^^^^^^^^^^^
-
-Gangs, Workers, and Vectors
+Vectors, Workers, and Gangs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- OpenACC has three levels of parallelism 
+  - **Vector** threads work in SIMT (SIMD) fashion 
+  - **Workers** compute a vector 
+  - **Gangs** have one or more workers that share resources, such as streaming multiprocessor - Multiple gangs work independently
 
- 
-This week's bonus task is to learn a bit more about how OpenACC breaks up the loop iterations into gangs, workers, and vectors, which was discussed very briefly in the first lab. Click Here for more information about these levels of parallelism.
+- By default, when programming for a GPU, gang and vector parallelism is automatically applied. 
 
-This is our last optimization, and arguably the most important one. In OpenACC, Gang Worker Vector is used to define additional levels of parallelism. Specifically for NVIDIA GPUs, gang, worker, and vector will specify the decomposition of our loop iterations to GPU threads. Each loop will have an optimal Gang/Worker/Vector implementation, and finding that correct implementation will often take a bit of thinking, and possibly some trial and error. So let's explain how the gang, worker, and vector clauses actually work.
+.. image:: img/gang_worker_vector.png
 
 
 This image represents a single gang. When parallelizing our for loops, the loop iterations will be broken up evenly among a number of gangs. Each gang will contain a number of threads. These threads are organized into blocks. A worker is a row of threads. In the above graphic, there are 3 workers, which means that there are 3 rows of threads. The vector refers to how long each row is. So in the above graphic, the vector is 8, because each row is 8 threads long.
 
-By default, when programming for a GPU, gang and vector parallelism is automatically applied. Let's see a simple GPU sample code where we explicitly show how the gang and vector works.
 
-#pragma acc parallel loop gang
-for(int i = 0; i < N; i++)
-{
-    #pragma acc loop vector
-    for(int j = 0; j < M; j++)
-    {
-        < loop code >
-    }
-}
+.. code :: c
 
-Lets look at an example where using gang worker vector can greatly increase a loops parallelism.
-
-#pragma acc parallel loop gang
-for(int i = 0; i < N; i++)
-{
-    #pragma acc loop vector
-    for(int j = 0; j < M; k++)
-    {
-        for(int k = 0; k < Q; k++)
-        {
-            < loop code >
-        }
-    }
-}
-In this loop, we have gang level parallelism on the outer-loop, and vector level parallelism on the middle-loop. However, the inner-loop does not have any parallelism. This means that each thread will be running the inner-loop, however, GPU threads aren't really made to run entire loops. To fix this, we could use worker level parallelism to add another layer.
-
-#pragma acc parallel loop gang
-for(int i = 0; i < N; i++)
-{
-    #pragma acc loop worker
-    for(int j = 0; j < M; k++)
-    {
-        #pragma acc loop vector
-        for(int k = 0; k < Q; k++)
-        {
-            < loop code >
-        }
-    }
-}
-Now, the outer-loop will be split across the gangs, the middle-loop will be split across the workers, and the inner loop will be executed by the threads within the vector.
-
-
-Gang, Worker, and Vector Syntax
-We have been showing really general examples of gang worker vector so far. One of the largest benefits of gang worker vector is the ability to explicitly define how many gangs and workers you need, and how many threads should be in the vector. Let's look at the syntax for the parallel directive:
-
-#pragma acc parallel num_gangs( 2 ) num_workers( 4 ) vector_length( 32 )
-{
+ #pragma acc parallel num_gangs( 2 ) num_workers( 4 ) vector_length( 32 )
+ {
     #pragma acc loop gang worker
     for(int i = 0; i < N; i++)
     {
@@ -434,40 +352,97 @@ We have been showing really general examples of gang worker vector so far. One o
             < loop code >
         }
     }
-}
-And now the syntax for the kernels directive:
+ }
 
-#pragma acc kernels loop gang( 2 ) worker( 4 )
-for(int i = 0; i < N; i++)
-{
-    #pragma acc loop vector( 32 )
-    for(int j = 0; j < M; j++)
+- Avoid Wasting Threads, when parallelizing small arrays, you have to be careful that the number of threads within your vector is not larger than the number of loop iterations. 
+
+.. code :: c
+
+ #pragma acc kernels loop gang
+ for(int i = 0; i < 1000000000; i++)
+ {
+    #pragma acc loop vector(256)
+    for(int j = 0; j < 32; j++)
     {
         < loop code >
     }
-}
+ }
 
-.. image:: img/gang_worker_vector.png
+ ...
+ 
+ #pragma acc kernels loop gang worker(8)
+ for(int i = 0; i < 1000000000; i++)
+ {
+    #pragma acc loop vector(32)
+    for(int j = 0; j < 32; j++)
+    {
+        < loop code >
+    }
+ }
+  
+- The Rule of 32 (Warps): The general rule of thumb for programming for NVIDIA GPUs is to always ensure that your vector length is a multiple of 32 (which means 32, 64, 96, 128, ... 512, ... 1024... etc.). This is because NVIDIA GPUs are optimized to use warps. Warps are groups of 32 threads that are executing the same computer instruction. 
 
 
-The tile clause allows us to break up a multi-dimensional loop into tiles, or blocks. This is often useful for increasing memory locality in codes like ours. Let's look at the syntax.
+Collapse Clause
+^^^^^^^^^^^^^^^
 
-#pragma acc parallel loop tile( x, y, z, ... )
-Our tiles can have as many dimensions as we want, though we must be careful to not create a tile that is too large. Let's look at an example:
+- The collapse clause allows us to transform a multi-dimensional loop nest into a single-dimensional loop. This process is helpful for increasing the overall length (which usually increases parallelism) of our loops, and will often help with memory locality. 
+
+.. code :: bash
+
+  #pragma acc parallel loop
+        for (int i = 1; i < nx-1; i++)
+        {
+  #pragma acc loop
+            for (int j = 1; j < ny-1; j++)
+            {
+               Unp1[i][j] = ...
+
+.. code :: bash
+
+  $ pgcc ... heat_equation_openacc_1.c
+         97, #pragma acc loop gang /* blockIdx.x */
+        100, #pragma acc loop vector(128) /* threadIdx.x */        
+
+  $ PGI_ACC_TIME=1 ./heat
+    93: compute region reached 500 times
+        93: kernel launched 500 times
+            grid: [198]  block: [128]
+            elapsed time(us): total=23,929 max=74 min=40 avg=47
+
+  #pragma acc parallel loop collapse(2) 
+        for (int i = 1; i < nx-1; i++)
+        {
+            for (int j = 1; j < ny-1; j++)
+            {
+               Unp1[i][j] = ...
+
+.. code :: bash
+
+  $ pgcc ... heat_equation_openacc_2.c
+         97, #pragma acc loop gang, vector(128) collapse(2) /* blockIdx.x threadIdx.x */
+         99,   /* blockIdx.x threadIdx.x collapsed */
+
+  $ PGI_ACC_TIME=1 ./heat 
+    93: compute region reached 500 times
+        93: kernel launched 500 times
+            grid: [307]  block: [128]
+            elapsed time(us): total=22,642 max=63 min=38 avg=45
+
 
 Summary
 -------
 
--  Data directive
+- Optimizing data movement
 
-   -  Structured data region
-   -  Clauses: ``copy``, ``present``, ``copyin``, ``copyout``,
-      ``create``
+ -  Data directive
+ -  Enter data & exit data
+ -  Unstructured data region
+ -  Update directive
+ -  Declare directive
 
--  Enter data & exit data
+- Optimizing loop performance
+ - loop gang worker vector
+ - collapse
 
-   -  Unstructured data region
-
--  Update directive
--  Declare directive
 
