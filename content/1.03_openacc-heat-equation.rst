@@ -3,6 +3,14 @@
 Introduction to OpenACC (cont.)
 ================================
 
+
+-  The three key steps in porting to high performance accelerated code:
+
+   1. Analyze/Identify parallelism
+   2. Express data movement and parallelism
+   3. Optimize data movement and loop performance
+   4. Go back to 1!
+
  .. image:: img/development-cycle.png
 
 - *Analyze* your code to determine most likely places needing parallelization or optimization.
@@ -11,18 +19,12 @@ Introduction to OpenACC (cont.)
 
 - *Optimize* your code to improve observed speed-up from parallelization.
 
--  The four key steps in porting to high performance accelerated code:
-
-   1. Analyze/Identify parallelism
-   2. Express parallelism
-   3. Express data movement
-   4. Optimize data movement/loop performance
-   5. Go back to 1!
-
 .. - One should generally start the process at the top with the analyze step. For complex applications, it's useful to have a profiling tool available to learn where your application is spending its execution time and to focus your efforts there.  Since our example code is quite a bit simpler than a full application, we'll skip profiling the code and simply analyze the code by reading it
 
 Otimizing data movement
 -----------------------
+
+-  Minimize the data transfer between host and device
 
 -  Constructs and clauses for
 
@@ -35,7 +37,8 @@ Otimizing data movement
    performed
 
  .. code :: c
-    /* #pragma acc data copy(vecA,vecB,vecC)
+
+    // #pragma acc data copy(vecA,vecB,vecC)
     #pragma acc kernels
     for (i = 0; i < NX; i++) {
         vecC[i] = vecA[i] * vecB[i];
@@ -74,7 +77,10 @@ Otimizing data movement
    the device until deallocation takes place
 
 
-.. typealong:: Adding two vector
+Data construct: example
+-----------------------
+
+.. typealong:: Heat equation
 
    .. tabs::
 
@@ -98,8 +104,74 @@ Otimizing data movement
          .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_data_1.c
                                                 :language: c
 
-Data construct: example
------------------------
+
+   
+ .. code :: c
+    
+    for (int n = 0; n < numSteps; n++)
+    {
+       /// Going through the entire area
+      #pragma acc parallel loop collapse(2) copyin(Un[0:nx][0:ny]) copyout(Unp1[0:nx][0:ny])
+        for (int i = 1; i < nx-1; i++)
+        {
+            for (int j = 1; j < ny-1; j++)
+            {
+               float uij = Un[i][j];
+               // Explicit scheme
+               Unp1[i][j] = uij + a * dt * ( (Un[i-1][j] - 2.0*uij + Un[i+1][j])/dx2 
+                                           + (Un[i][j-1] - 2.0*uij + Un[i][j+1])/dy2 );
+            }
+        }
+
+
+  .. code :: bash
+    time(us): 16,877
+       93: data region reached 1000 times
+        42: kernel launched 1000 times
+            grid: [2]  block: [128]
+            elapsed time(us): total=12,437 max=50 min=11 avg=12
+        93: data copyin transfers: 500
+             device time(us): total=8,572 max=45 min=16 avg=17
+        107: data copyout transfers: 500
+             device time(us): total=8,305 max=23 min=16 avg=16
+
+ .. code :: c
+
+  #pragma acc data copyin(Un[0:nx][0:ny]) create(Unp1[0:nx][0:ny])
+ {
+    for (int n = 0; n < numSteps; n++)
+    {
+        // Going through the entire area
+        #pragma acc parallel loop collapse(2)
+        for (int i = 1; i < nx-1; i++)
+            for (int j = 1; j < ny-1; j++)            
+              Unp1[i][j] = ...
+  
+   if (n % outputEvery == 0)  {
+   #pragma acc update host(Un[0:nx][0:ny])
+            save_png(Un[0], nx, ny, filename, 'c');
+    }
+   #pragma acc parallel loop collapse(2)
+              for (int i = 1; i < nx; i++) 
+        {
+          for (int j = 1; j < ny; j++)
+            Un[i][j] = Unp1[i][j];
+        }
+    }    
+ }
+
+ .. code :: c
+        time(us): 151
+    93: data region reached 2 times
+        42: kernel launched 2 times
+            grid: [2]  block: [128]
+            elapsed time(us): total=72 max=49 min=23 avg=36
+        93: data copyin transfers: 1
+             device time(us): total=45 max=45 min=45 avg=45
+    115: update directive reached 5 times
+        115: data copyout transfers: 5
+             device time(us): total=106 max=22 min=20 avg=21
+
 
 Data constructs: data clauses
 -----------------------------
@@ -354,6 +426,143 @@ Managed memory
 
 
 
+Optimize Loop performance
+-------------------------
+The compiler has analyzed the loops in our two main functions and scheduled the iterations of the loops to run in parallel on our GPU and Multicore CPU. The compiler is usually pretty good at choosing how to break up loop iterations to run well on parallel accelerators, but sometimes we can eke out just a little more performance by guiding the compiler to make specific choices. First, let's look at the choices the compiler made for us. We'll focus on the calcNext routine, but you should look at the swap routine too. Here's the compiler feedback for that routine
+
+ .. code :: bash
+
+ calcNext:
+     48, Generating copyin(A[:m*n])
+         Accelerator kernel generated
+         Generating Tesla code
+         49, #pragma acc loop gang  blockIdx.x 
+             Generating reduction(max:error)
+         51, #pragma acc loop vector(12)  threadIdx.x 
+     48, Generating implicit copy(error)
+         Generating copyout(Anew[:m*n])
+     51, Loop is parallelizable
+  
+
+The main loops on interest in calcNext are on lines 49 and 51. I see that the compiler has told me what loop clauses it chose for each of those loops. The outermost loop is treated as a gang loop, meaning it broke that loop up into chunks that can be spread out across the GPU or CPU cores easily. If you have programmed in CUDA before, you'll recognize that the compiler is mapping this loop to the CUDA thread blocks. The innermost loop is mapped instead to vector parallelism. You can think of a vector as some number of data cells that get the same operation applied to them at the same time. On any modern processor technology you need this mixture of coarse grained and fine grained parallelism to effectively use the hardware. Vector (fine grained) parallelism can operate extremely efficiently when performing the same operation on a bunch of data, but there's limits to how long a vector you can build. Gang (coarse grained) parallelism is highly scalable, because each chunk of work can operate completely independently of each other chunk, making it ideal for allowing processor cores to operate independently of each other.
+
+
+Collapse Clause
+^^^^^^^^^^^^^^^
+The collapse clause allows us to transform a multi-dimensional loop nest into a single-dimensional loop. This process is helpful for increasing the overall length (which usually increases parallelism) of our loops, and will often help with memory locality. In our case, instead of looking at our loops as n and m iteration loops, it looks at them as a single n * m iteration loop, which gives it more flexibility in how to break up the iterations. Let's look at the syntax.
+
+ .. code :: bash
+
+ #pragma acc parallel loop collapse( N )
+ Where N is the number of loops to collapse.
+
+ #pragma acc parallel loop collapse( 3 )
+ for(int i = 0; i < N; i++)
+ {
+    for(int j = 0; j < M; j++)
+    {
+        for(int k = 0; k < Q; k++)
+        {
+            < loop code >
+        }
+    }
+ }
+
+
+Let's look at another clause that may help our code.
+
+Tile Clause
+^^^^^^^^^^^
+
+Gangs, Workers, and Vectors
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ 
+This week's bonus task is to learn a bit more about how OpenACC breaks up the loop iterations into gangs, workers, and vectors, which was discussed very briefly in the first lab. Click Here for more information about these levels of parallelism.
+
+This is our last optimization, and arguably the most important one. In OpenACC, Gang Worker Vector is used to define additional levels of parallelism. Specifically for NVIDIA GPUs, gang, worker, and vector will specify the decomposition of our loop iterations to GPU threads. Each loop will have an optimal Gang/Worker/Vector implementation, and finding that correct implementation will often take a bit of thinking, and possibly some trial and error. So let's explain how the gang, worker, and vector clauses actually work.
+
+
+This image represents a single gang. When parallelizing our for loops, the loop iterations will be broken up evenly among a number of gangs. Each gang will contain a number of threads. These threads are organized into blocks. A worker is a row of threads. In the above graphic, there are 3 workers, which means that there are 3 rows of threads. The vector refers to how long each row is. So in the above graphic, the vector is 8, because each row is 8 threads long.
+
+By default, when programming for a GPU, gang and vector parallelism is automatically applied. Let's see a simple GPU sample code where we explicitly show how the gang and vector works.
+
+#pragma acc parallel loop gang
+for(int i = 0; i < N; i++)
+{
+    #pragma acc loop vector
+    for(int j = 0; j < M; j++)
+    {
+        < loop code >
+    }
+}
+
+Lets look at an example where using gang worker vector can greatly increase a loops parallelism.
+
+#pragma acc parallel loop gang
+for(int i = 0; i < N; i++)
+{
+    #pragma acc loop vector
+    for(int j = 0; j < M; k++)
+    {
+        for(int k = 0; k < Q; k++)
+        {
+            < loop code >
+        }
+    }
+}
+In this loop, we have gang level parallelism on the outer-loop, and vector level parallelism on the middle-loop. However, the inner-loop does not have any parallelism. This means that each thread will be running the inner-loop, however, GPU threads aren't really made to run entire loops. To fix this, we could use worker level parallelism to add another layer.
+
+#pragma acc parallel loop gang
+for(int i = 0; i < N; i++)
+{
+    #pragma acc loop worker
+    for(int j = 0; j < M; k++)
+    {
+        #pragma acc loop vector
+        for(int k = 0; k < Q; k++)
+        {
+            < loop code >
+        }
+    }
+}
+Now, the outer-loop will be split across the gangs, the middle-loop will be split across the workers, and the inner loop will be executed by the threads within the vector.
+
+
+Gang, Worker, and Vector Syntax
+We have been showing really general examples of gang worker vector so far. One of the largest benefits of gang worker vector is the ability to explicitly define how many gangs and workers you need, and how many threads should be in the vector. Let's look at the syntax for the parallel directive:
+
+#pragma acc parallel num_gangs( 2 ) num_workers( 4 ) vector_length( 32 )
+{
+    #pragma acc loop gang worker
+    for(int i = 0; i < N; i++)
+    {
+        #pragma acc loop vector
+        for(int j = 0; j < M; j++)
+        {
+            < loop code >
+        }
+    }
+}
+And now the syntax for the kernels directive:
+
+#pragma acc kernels loop gang( 2 ) worker( 4 )
+for(int i = 0; i < N; i++)
+{
+    #pragma acc loop vector( 32 )
+    for(int j = 0; j < M; j++)
+    {
+        < loop code >
+    }
+}
+
+.. image:: img/gang_worker_vector.png
+
+
+The tile clause allows us to break up a multi-dimensional loop into tiles, or blocks. This is often useful for increasing memory locality in codes like ours. Let's look at the syntax.
+
+#pragma acc parallel loop tile( x, y, z, ... )
+Our tiles can have as many dimensions as we want, though we must be careful to not create a tile that is too large. Let's look at an example:
 
 Summary
 -------
