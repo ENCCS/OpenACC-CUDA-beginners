@@ -80,20 +80,19 @@ Otimizing data movement
 Data constructs: data clauses
 -----------------------------
 
- -  ``present(var-list)``  **on entry/exit:** assume that memory is allocated and that data is present on the device
+-  ``present(var-list)``  **on entry/exit:** assume that memory is allocated and that data is present on the device
 
- - ``create(var-list)``  **on entry:** allocate memory on the device, unless it was already
-      present  **on exit:** deallocate memory on the device, if it was allocated on entry
+- ``create(var-list)``  **on entry:** allocate memory on the device, unless it was already present,  **on exit:** deallocate memory on the device if it was allocated on entry
 
- - ``copy(var-list)`` **on entry:** if data is present on the device on entry, behave as   with the ``present`` clause, otherwise allocate memory on the device  and copy data from the host to the device.  **on exit:** copy data from the device to the host and deallocate
-   memory on the device if it was allocated on entry
+- ``copy(var-list)`` **on entry:** if data is present on the device on entry, behave as   with the ``present`` clause, otherwise allocate memory on the device  and copy data from the host to the device.  **on exit:** copy data from the device to the host and deallocate memory on the device if it was allocated on entry
 
-- ``copyin(var-list)`` **on entry:** same as ``copy`` on entry, **on exit:** deallocate memory on the device if it was allocated
-      on entry
+- ``copyin(var-list)`` **on entry:** same as ``copy`` on entry, **on exit:** deallocate memory on the device if it was allocated on entry
 
--  ``copyout(var-list)`` **on entry:** if data is present on the device on entry, behave as
-      with the ``present`` clause, otherwise allocate memory on the device **on exit:** same as ``copy`` on exit
+-  ``copyout(var-list)`` **on entry:** if data is present on the device on entry, behave as     with the ``present`` clause, otherwise allocate memory on the device **on exit:** same as ``copy`` on exit
 
+-  ``present(var-list)``  **on entry/exit:** assume that memory is allocated and that data is present on the device
+
+- ``create(var-list)``  **on entry:** allocate memory on the device, unless it was already present,  **on exit:** deallocate memory on the device if it was allocated on entry
 
 - ``reduction(operator:var-list)`` the operator can be ``+,-,*,max,min``, Performs reduction on the (scalar) variables in list
 
@@ -125,9 +124,6 @@ Default data environment in compute constructs
    -  ``copy`` clause in ``kernels``
    -  ``firstprivate`` clause in ``parallel``
 
-``data`` construct: example
----------------------------
-
 
 Unstructured data regions
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -139,68 +135,13 @@ Unstructured data regions
 
    -  C/C++: ``#pragma acc enter data [clauses]``
    -  Fortran: ``!$acc enter data [clauses]``
+   - [clauses] can be ``create(var-list)`` to allocate memory on the device or ``copyin(var-list)`` to allocate memory on the device and copy data from the host to the device
 
 -  ``exit data`` defines the end of an unstructured data region
 
    -  C/C++: ``#pragma acc exit data [clauses]``
    -  Fortran: ``!$acc exit data [clauses]``
-
-Unstructured data
-^^^^^^^^^^^^^^^^
-
-.. code:: c
-
-   class Vector {
-       Vector(int n) : len(n) {
-           v = new double[len];
-           #pragma acc enter data create(v[0:len])
-       }
-       ~Vector() {
-           #pragma acc exit data delete(v[0:len])
-           delete[] v;
-       }
-       double v;
-       int len;
-   };
-
-Enter data clauses
-^^^^^^^^^^^^^^^^^^
-
-   ``if(condition)``
- 
-   -  Do nothing if condition is false
-
-   ``create(var-list)``
-
-   -  Allocate memory on the device
-
-   ``copyin(var-list)``
-
-   -  Allocate memory on the device and copy data from the host to the
-      device
-
-Exit data clauses
-^^^^^^^^^^^^^^^^^
-
-   ``if(condition)``
-
-   -  Do nothing if condition is false
-
-   ``delete(var-list)``
-
-   -  Deallocate memory on the device
-
-
-.. container:: column
-
-   ``copyout(var-list)``
-
-   -  Deallocate memory on the device and copy data from the device to
-      the host
-
-   -  in-depth: *dynamic* reference count decremented, and
-       deallocation happens if both reference counts (*dynamic* and
-       *structured*) are zero
+   - [clauses] can be ``delete(var-list)`` to deallocate memory on the device or ``copyout(var-list)`` to  Deallocate memory on the device and copy data from the device to  the host
 
 Data directive: update
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -217,12 +158,7 @@ Data directive: update
    -  ``self`` (``host``) clause updates variables from device to host
    -  ``device`` clause updates variables from host to device
 
--  At least one data direction clause must be present
-
-.. _data-directive-update-1:
-
-Data directive: update
-^^^^^^^^^^^^^^^^^^^^^^
+.. -  At least one data direction clause must be present
 
 -  ``update`` is a single line executable directive
 -  Useful for producing snapshots of the device variables on the host or
@@ -235,11 +171,6 @@ Data directive: update
 
    -  Asynchronous execution of OpenACC constructs
    -  Unstructured data regions
-
-``update`` directive: example
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. container:: column
 
 Data directive: declare
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -334,7 +265,8 @@ Data construct: Heat equation
         }
 
 
-  .. code :: bash
+ .. code :: bash
+
          time(us): 16,877
        93: data region reached 1000 times
         42: kernel launched 1000 times
@@ -371,6 +303,7 @@ Data construct: Heat equation
  }
 
  .. code :: bash
+
             time(us): 151
     93: data region reached 2 times
         42: kernel launched 2 times
