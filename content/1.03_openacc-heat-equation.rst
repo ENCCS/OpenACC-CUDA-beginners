@@ -190,7 +190,8 @@ Data directive: declare
 Data construct: example
 -----------------------
 
- .. code :: c
+.. code :: c
+
    const int N=100;
    #pragma acc data copy(a[0:N])
    {  
@@ -247,7 +248,7 @@ Data construct: example
 Data construct: Heat equation
 -----------------------------
 
- .. code :: c
+.. code :: c
 
     for (int n = 0; n < numSteps; n++)
     {
@@ -265,7 +266,7 @@ Data construct: Heat equation
         }
 
 
- .. code :: bash
+.. code :: bash
 
          time(us): 16,877
        93: data region reached 1000 times
@@ -277,7 +278,7 @@ Data construct: Heat equation
         107: data copyout transfers: 500
              device time(us): total=8,305 max=23 min=16 avg=16
 
- .. code :: c
+.. code :: c
 
   #pragma acc data copyin(Un[0:nx][0:ny]) create(Unp1[0:nx][0:ny])
  {
@@ -302,7 +303,7 @@ Data construct: Heat equation
     }
  }
 
- .. code :: bash
+.. code :: bash
 
             time(us): 151
     93: data region reached 2 times
