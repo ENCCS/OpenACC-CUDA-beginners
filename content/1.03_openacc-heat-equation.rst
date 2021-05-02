@@ -80,22 +80,22 @@ Otimizing data movement
 
       .. tab:: cpu
 
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/HeatEquation/c/heat_equation.c
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/c/heat_equation.c
                                     :language: c
 
       .. tab:: OpenACC parallel loop
 
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/HeatEquation/c/heat_equation_openacc_1.c
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_1.c
                                     :language: c
 
       .. tab:: OpenACC loop collapse
 
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/HeatEquation/c/heat_equation_openacc_2.c
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_2.c
                                     :language: c
 
       .. tab:: OpenACC data create
 
-         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/HeatEquation/c/heat_equation_openacc_data_1.c
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_data_1.c
                                                 :language: c
 
 Data construct: example

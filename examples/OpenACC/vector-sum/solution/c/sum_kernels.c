@@ -17,7 +17,7 @@ int main(void)
         vecB[i] = vecA[i] * vecA[i];
     }
 
-#pragma acc data copy(vecA,vecB,vecC)
+//#pragma acc data copy(vecA,vecB,vecC)
 {
 #pragma acc kernels
     for (i = 0; i < NX; i++) {

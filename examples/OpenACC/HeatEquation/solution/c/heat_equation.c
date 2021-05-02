@@ -89,10 +89,13 @@ int main()
     memcpy(Unp1[0], Un[0], numElements*sizeof(float));
 
     // Main loop
+#pragma acc data copyin(Un[0:nx][0:ny]) create(Unp1[0:nx][0:ny])
+{
     for (int n = 0; n < numSteps; n++)
     {
         // Going through the entire area
-        /* TODO: Implement computation on device with OpenACC */
+      //#pragma acc parallel loop copyin(Un[0:nx][0:ny]) copyout(Unp1[0:nx][0:ny]) 
+#pragma acc parallel loop collapse(2)
         for (int i = 1; i < nx-1; i++)
         {
             for (int j = 1; j < ny-1; j++)
@@ -108,11 +111,19 @@ int main()
         {
             char filename[64];
             sprintf(filename, "heat_%04d.png", n);
+#pragma acc update host(Un[0:nx][0:ny])
             save_png(Un[0], nx, ny, filename, 'c');
         }
-        // Swapping the pointers for the next timestep
-	memcpy(Un[0], Unp1[0], numElements*sizeof(float));
+        // Copy the pointers for the next timestep
+	//memcpy(Un[0], Unp1[0], numElements*sizeof(float));
+#pragma acc parallel loop collapse(2)
+        for (int i = 1; i < nx; i++) 
+	{
+	  for (int j = 1; j < ny; j++)
+	    Un[i][j] = Unp1[i][j];
+	}
     }
+}
 
     // Release the memory
     free_2d(Un);

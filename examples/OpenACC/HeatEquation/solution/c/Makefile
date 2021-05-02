@@ -13,7 +13,7 @@ OBJS=pngwriter.o heat_equation.o
 all: $(EXE)
 
 # Dependencies
-heat_equation.o: heat_equation.c
+heat_equation.o: heat_equation_openacc_1.c
 pngwriter.o: pngwriter.c
 
 $(EXE): $(OBJS) .ALWAYSEXEC
