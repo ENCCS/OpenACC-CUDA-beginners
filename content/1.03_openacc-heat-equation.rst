@@ -1,12 +1,31 @@
 .. _openacc-heat-equation:
 
-Solving heat equation with OpenACC
-==================================
+Introduction to OpenACC (cont.)
+================================
 
-# OpenACC data environment
 
--  OpenACC supports devices which either share memory with or have a
-   separate memory from the host
+-  The three key steps in porting to high performance accelerated code:
+
+   1. Analyze/Identify parallelism
+   2. Express data movement and parallelism
+   3. Optimize data movement and loop performance
+   4. Go back to 1!
+
+ .. image:: img/development-cycle.png
+
+- *Analyze* your code to determine most likely places needing parallelization or optimization.
+
+- *Parallelize* your code by starting with the most time consuming parts and check for correctness.
+
+- *Optimize* your code to improve observed speed-up from parallelization.
+
+.. - One should generally start the process at the top with the analyze step. For complex applications, it's useful to have a profiling tool available to learn where your application is spending its execution time and to focus your efforts there.  Since our example code is quite a bit simpler than a full application, we'll skip profiling the code and simply analyze the code by reading it
+
+Otimizing data movement
+-----------------------
+
+-  Minimize the data transfer between host and device
+
 -  Constructs and clauses for
 
    -  defining the variables on the device
@@ -17,250 +36,65 @@ Solving heat equation with OpenACC
    data clauses, i.e. copying to and from to the device is automatically
    performed
 
-Motivation for optimizing data movement
----------------------------------------
+ .. code :: c
 
--  When dealing with an accelerator / GPU device attached to a PCIe bus,
-   **optimizing data movement** is often **essential** to achieving good
-   performance
--  The four key steps in porting to high performance accelerated code:
+    // #pragma acc data copy(vecA,vecB,vecC)
+    #pragma acc kernels
+    for (i = 0; i < NX; i++) {
+        vecC[i] = vecA[i] * vecB[i];
+    }        
 
-   1. Identify parallelism
-   2. Express parallelism
-   3. Express data movement
-   4. Optimise loop performance
-   5. Go back to 1!
+ .. code :: bash
 
-Data lifetimes
---------------
+    $ pgcc -g -O3 -acc -Minfo=accel -ta=nvidia sum.c -o sum
+    23, Generating implicit copyout(vecC[:]) [if not already present]
+        Generating implicit copyin(vecB[:],vecA[:]) [if not already present]
+   
+    $ export PGI_ACC_TIME=1
+    $ ./sum
+    time(us): 247
+    23: data region reached 2 times
+        23: data copyin transfers: 2
+             device time(us): total=174 max=99 min=75 avg=87
+        25: data copyout transfers: 1
+             device time(us): total=73 max=73 min=73 avg=73
+  
+    #### previous with explicit data copy
+      Accelerator Kernel Timing data
+       main  NVIDIA  devicenum=0
+    time(us): 451
+    21: data region reached 2 times
+        21: data copyin transfers: 3
+             device time(us): total=245 max=100 min=71 avg=81
+        29: data copyout transfers: 3
+             device time(us): total=206 max=72 min=67 avg=68
+
 
 -  Typically data on the device has the same lifetime as the OpenACC
    construct (``parallel``, ``kernels``, ``data``) it is declared in
+
 -  It is possible to declare and refer to data residing statically on
    the device until deallocation takes place
--  If the accelerator has a separate memory from the host, any
-   modifications to the data on the host are not visible to the device
-   before an explicit update has been made and vice versa
-
-Data constructs: data
----------------------
-
--  Define a region with data declared in the device memory
-
-   -  C/C++: ``#pragma acc data [clauses]``
-   -  Fortran: ``!$acc data [clauses]``
-
--  Data transfers take place
-
-   -  from the **host** to the **device** upon entry to the region
-   -  from the **device** to the **host** upon exit from the region
-
--  Functionality defined by *data clauses*
--  *Data clauses* can also be used in ``kernels`` and ``parallel``
-   constructs
-
-Data construct: example
------------------------
-
-.. container:: column
-
-   .. rubric:: C/C++
-            :name: cc
-
-   .. code:: c
-
-      float a[100];
-      int iter;
-      int maxit=100;
-
-      #pragma acc data create(a)
-      {
-          /* Initialize data on device */
-          init(a);
-          for (iter=0; iter < maxit; iter++) {
-              /* Computations on device */
-              acc_compute(a);
-          }
-      }
-
-.. container:: column
-
-   .. rubric:: Fortran
-            :name: fortran
-
-   .. code:: fortran
-
-      real :: a(100)
-      integer :: iter
-      integer, parameter :: maxit = 100
-
-      !$acc data create(a)
-      ! Initialize data on device
-      call init(a)
-      do iter=1,maxit
-        ! Computations on device
-        call acc_compute(a)
-      end do
-      !$acc end data
 
 
 Data constructs: data clauses
 -----------------------------
 
-.. container:: column
+- ``copy(var-list)`` **on entry:** if data is present on the device on entry, behave as   with the *present* clause, otherwise allocate memory on the device  and copy data from the host to the device.  **on exit:** copy data from the device to the host and deallocate memory on the device if it was allocated on entry
 
-   ``present(var-list)``
-      ``-``
+- ``copyin(var-list)`` **on entry:** same as *copy* on entry, **on exit:** deallocate memory on the device if it was allocated on entry
 
-   -  **on entry/exit:** assume that memory is allocated and that data
-      is present on the device
+-  ``copyout(var-list)`` **on entry:** if data is present on the device on entry, behave as with the *present* clause, otherwise allocate memory on the device **on exit:** same as *copy* on exit
 
-.. container:: column
+-  ``present(var-list)``  **on entry/exit:** assume that memory is allocated and that data is present on the device
 
-   ``create(var-list)``
-      ``-``
+- ``create(var-list)``  **on entry:** allocate memory on the device, unless it was already present,  **on exit:** deallocate memory on the device if it was allocated on entry
 
-   -  **on entry:** allocate memory on the device, unless it was already
-      present
-   -  **on exit:** deallocate memory on the device, if it was allocated
-      on entry
+- ``reduction(operator:var-list)`` the operator can be ``+,-,*,max,min``, Performs reduction on the (scalar) variables in list
 
-      -  in-depth: *structured* reference count decremented, and
-         deallocation happens if both reference counts (*structured* and
-         *dynamic*) are zero
-
-.. _data-constructs-data-clauses-1:
-
-Data constructs: data clauses
------------------------------
-
-``copy(var-list)``
-   ``-``
-
--  **on entry:** if data is present on the device on entry, behave as
-   with the ``present`` clause, otherwise allocate memory on the device
-   and copy data from the host to the device.
--  **on exit:** copy data from the device to the host and deallocate
-   memory on the device if it was allocated on entry
-
-.. _data-constructs-data-clauses-2:
-
-Data constructs: data clauses
------------------------------
-
-.. container:: column
-
-   ``copyin(var-list)``
-      ``-``
-
-   -  **on entry:** same as ``copy`` on entry
-   -  **on exit:** deallocate memory on the device if it was allocated
-      on entry
-
-.. container:: column
-
-   ``copyout(var-list)``
-      ``-``
-
-   -  **on entry:** if data is present on the device on entry, behave as
-      with the ``present`` clause, otherwise allocate memory on the
-      device
-   -  **on exit:** same as ``copy`` on exit
-
-.. _data-constructs-data-clauses-3:
-
-Data constructs: data clauses
------------------------------
-
-``reduction(operator:var-list)``
-   ``-``
-
--  Performs reduction on the (scalar) variables in list
--  Private reduction variable is created for each gang’s partial result
-
-   -  initialised to operators initial value
-
--  After parallel region the reduction operation is applied to the
-   private variables and the result is aggregated to the shared variable
-   *and* the aggregated result is combined with the original value of
-   the variable
-
-Reduction operators in C/C++ and Fortran
-----------------------------------------
-
-=================== =============
-Arithmetic Operator Initial value
-=================== =============
-``+``               ``0``
-``-``               ``0``
-``*``               ``1``
-``max``             least
-``min``             largest
-=================== =============
-
-.. _reduction-operators-in-cc-and-fortran-1:
-
-Reduction operators in C/C++ and Fortran
-----------------------------------------
-
-=================== =============
-Arithmetic Operator Initial value
-=================== =============
-``+``               ``0``
-``-``               ``0``
-``*``               ``1``
-``max``             least
-``min``             largest
-=================== =============
-
-Reduction operators in C/C++ only
----------------------------------
-
-.. container:: column
-
-   ================ =============
-   Logical Operator Initial value
-   ================ =============
-   ``&&``           ``1``
-   ``||``           ``0``
-   ================ =============
-
-.. container:: column
-
-   ================ =============
-   Bitwise Operator Initial value
-   ================ =============
-   ``&``            ``~0``
-   ``|``            ``0``
-   ``^``            ``0``
-   ================ =============
-
-Reduction operators in Fortran
-------------------------------
-
-.. container:: column
-
-   ================ =============
-   Logical Operator Initial value
-   ================ =============
-   ``.and.``        ``.true.``
-   ``.or.``         ``.false.``
-   ``.eqv.``        ``.true.``
-   ``.neqv.``       ``.false.``
-   ================ =============
-
-.. container:: column
-
-   ================ =============
-   Bitwise Operator Initial value
-   ================ =============
-   ``iand``         all bits on
-   ``ior``          ``0``
-   ``ieor``         ``0``
-   ================ =============
 
 Data specification
-------------------
+^^^^^^^^^^^^^^^^^^
 
 -  Data clauses specify functionality for different variables
 -  Overlapping data specifications are not allowed
@@ -273,7 +107,7 @@ Data specification
    multidimensional arrays etc.)
 
 Default data environment in compute constructs
-----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  All variables used inside the ``parallel`` or ``kernels`` region will
    be treated as *implicit* variables if they are not present in any
@@ -286,56 +120,9 @@ Default data environment in compute constructs
    -  ``copy`` clause in ``kernels``
    -  ``firstprivate`` clause in ``parallel``
 
-``data`` construct: example
----------------------------
-
-.. container:: column
-
-   .. rubric:: C/C++
-            :name: cc
-
-   .. code:: c
-
-      int a[100], d[3][3], i, j;
-
-      #pragma acc data copy(a[0:100])
-      {
-          #pragma acc parallel loop present(a)
-          for (int i=0; i<100; i++)
-              a[i] = a[i] + 1;
-          #pragma acc parallel loop \
-                collapse(2) copyout(d)
-          for (int i=0; i<3; ++i)
-              for (int j=0; j<3; ++j)
-                  d[i][j] = i*3 + j + 1;
-      }
-
-.. container:: column
-
-   .. rubric:: Fortran
-            :name: fortran
-
-   .. code:: fortran
-
-      integer a(0:99), d(3,3), i, j
-
-      !$acc data copy(a(0:99))
-        !$acc parallel loop present(a)
-        do i=0,99
-           a(i) = a(i) + 1
-        end do
-        !$acc end parallel loop
-        !$acc parallel loop collapse(2) copyout(d)
-        do j=1,3
-           do i=1,3
-              d(i,j) = i*3 + j + 1
-           end do
-        end do
-        !$acc end parallel loop
-      !$acc end data
 
 Unstructured data regions
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Unstructured data regions enable one to handle cases where allocation
    and freeing is done in a different scope
@@ -344,86 +131,16 @@ Unstructured data regions
 
    -  C/C++: ``#pragma acc enter data [clauses]``
    -  Fortran: ``!$acc enter data [clauses]``
+   - [clauses] can be ``create(var-list)`` to allocate memory on the device or ``copyin(var-list)`` to allocate memory on the device and copy data from the host to the device
 
 -  ``exit data`` defines the end of an unstructured data region
 
    -  C/C++: ``#pragma acc exit data [clauses]``
    -  Fortran: ``!$acc exit data [clauses]``
-
-Unstructured data
------------------
-
-.. code:: c
-
-   class Vector {
-       Vector(int n) : len(n) {
-           v = new double[len];
-           #pragma acc enter data create(v[0:len])
-       }
-       ~Vector() {
-           #pragma acc exit data delete(v[0:len])
-           delete[] v;
-       }
-       double v;
-       int len;
-   };
-
-Enter data clauses
-------------------
-
-.. container:: column
-
-   ``if(condition)``
-      ``-``
-
-   -  Do nothing if condition is false
-
-   ``create(var-list)``
-      ``-``
-
-   -  Allocate memory on the device
-
-.. container:: column
-
-   ``copyin(var-list)``
-      ``-``
-
-   -  Allocate memory on the device and copy data from the host to the
-      device
-
-Exit data clauses
------------------
-
-.. container:: column
-
-   ``if(condition)``
-      ``-``
-
-   -  Do nothing if condition is false
-
-   ``delete(var-list)``
-      ``-``
-
-   -  Deallocate memory on the device
-
-      -  in-depth: *dynamic* reference count decremented, and
-         deallocation happens if both reference counts (*dynamic* and
-         *structured*) are zero
-
-.. container:: column
-
-   ``copyout(var-list)``
-      ``-``
-
-   -  Deallocate memory on the device and copy data from the device to
-      the host
-
-      -  in-depth: *dynamic* reference count decremented, and
-         deallocation happens if both reference counts (*dynamic* and
-         *structured*) are zero
+   - [clauses] can be ``delete(var-list)`` to deallocate memory on the device or ``copyout(var-list)`` to  Deallocate memory on the device and copy data from the device to  the host
 
 Data directive: update
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 -  Define variables to be updated within a data region between host and
    device memory
@@ -437,12 +154,7 @@ Data directive: update
    -  ``self`` (``host``) clause updates variables from device to host
    -  ``device`` clause updates variables from host to device
 
--  At least one data direction clause must be present
-
-.. _data-directive-update-1:
-
-Data directive: update
-----------------------
+.. -  At least one data direction clause must be present
 
 -  ``update`` is a single line executable directive
 -  Useful for producing snapshots of the device variables on the host or
@@ -456,55 +168,8 @@ Data directive: update
    -  Asynchronous execution of OpenACC constructs
    -  Unstructured data regions
 
-``update`` directive: example
------------------------------
-
-.. container:: column
-
-   .. rubric:: C/C++
-            :name: cc
-
-   .. code:: c
-
-      float a[100];
-      int iter;
-      int maxit=100;
-
-      #pragma acc data create(a) {
-          /* Initialize data on device */
-          init(a);
-          for (iter=0; iter < maxit; iter++) {
-              /* Computations on device */
-              acc_compute(a);
-              #pragma acc update self(a) \
-                      if(iter % 10 == 0)
-          }
-      }
-
-.. container:: column
-
-   .. rubric:: Fortran
-            :name: fortran
-
-   .. code:: fortran
-
-      real :: a(100)
-      integer :: iter
-      integer, parameter :: maxit = 100
-
-      !$acc data create(a)
-          ! Initialize data on device
-          call init(a)
-          do iter=1,maxit
-              ! Computations on device
-              call acc_compute(a)
-              !$acc update self(a)
-              !$acc& if(mod(iter,10)==0)
-          end do
-      !$acc end data
-
 Data directive: declare
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Makes a variable resident in accelerator memory
 -  Added at the declaration of a variable
@@ -518,62 +183,262 @@ Data directive: declare
    -  ``device_resident``
    -  ``link``
 
-Porting and managed memory
---------------------------
+Data construct: example
+-----------------------
 
-.. container:: column
+.. code :: c
 
-   -  Porting a code with complicated data structures can be challenging
-      because every field in type has to be copied explicitly
-   -  Recent GPUs have *Unified Memory* and support for page faults
+   const int N=100;
+   #pragma acc data copy(a[0:N])
+   {  
+    #pragma acc parallel loop present(a)
+    for (int i=0; i<N; i++)
+        a[i] = a[i] + 1;
+   }
 
-.. container:: column
+   ...
+   #pragma acc data copyout(a[0:N]), copyin(b[0:N])
+   {
+    #pragma acc parallel loop present(a,b)
+    for (int i=0; i<N; i++)
+        a[i] = b[i] + 1;
+   }
 
-   .. code:: c
+   ...
+   #pragma acc data copyout(a[0:N]), create(b[0:N])
+   {
+    #pragma acc parallel loop
+    for (int i=0; i<N; i++)
+        b[i] = i * 2.0;
 
-      typedef struct points {
-          double x, y;
-          int n;
-      }
+    #pragma acc parallel loop present(a,b)
+    for (int i=0; i<N; i++)
+        a[i] = b[i] + 1;
+   }
 
-      void init_point() {
-          points p;
 
-          #pragma acc data create(p)
-          {
-              p.size = n;
-              p.x = (double)malloc(...
-              p.y = (double)malloc(...
-              #pragma acc update device(p)
-              #pragma acc copyin (p.x[0:n]...
+.. typealong:: Heat equation
 
-Managed memory
---------------
+   .. tabs::
 
--  Managed memory copies can be enabled on PGI compilers
+      .. tab:: cpu
 
-   -  Pascal (P100): ``--ta=tesla,cc60,managed``
-   -  Volta (V100): ``--ta=tesla,cc70,managed``
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/c/heat_equation.c
+                                                :language: c
 
--  For full benefits Pascal or Volta generation GPU is needed
--  Performance depends on the memory access patterns
+      .. tab:: OpenACC parallel loop
 
-   -  For some cases performance is comparable with explicitly tuned
-      versions
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_1.c
+                                                :language: c
+
+      .. tab:: OpenACC loop collapse
+
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_2.c
+                                                :language: c
+
+      .. tab:: OpenACC data create
+
+         .. literalinclude:: ../examples/OpenACC/HeatEquation/solution/c/heat_equation_openacc_data_1.c
+                                                            :language: c
+
+Data construct: Heat equation
+-----------------------------
+
+.. code :: c
+
+    for (int n = 0; n < numSteps; n++)
+    {
+       /// Going through the entire area
+      #pragma acc parallel loop collapse(2) copyin(Un[0:nx][0:ny]) copyout(Unp1[0:nx][0:ny])
+        for (int i = 1; i < nx-1; i++)
+        {
+            for (int j = 1; j < ny-1; j++)
+            {
+               float uij = Un[i][j];
+               // Explicit scheme
+               Unp1[i][j] = uij + a * dt * ( (Un[i-1][j] - 2.0*uij + Un[i+1][j])/dx2
+                                           + (Un[i][j-1] - 2.0*uij + Un[i][j+1])/dy2 );
+            }
+        }
+
+
+.. code :: bash
+
+         time(us): 16,877
+       93: data region reached 1000 times
+        42: kernel launched 1000 times
+            grid: [2]  block: [128]
+            elapsed time(us): total=12,437 max=50 min=11 avg=12
+        93: data copyin transfers: 500
+             device time(us): total=8,572 max=45 min=16 avg=17
+        107: data copyout transfers: 500
+             device time(us): total=8,305 max=23 min=16 avg=16
+
+.. code :: c
+
+  #pragma acc data copyin(Un[0:nx][0:ny]) create(Unp1[0:nx][0:ny])
+ {
+    for (int n = 0; n < numSteps; n++)
+    {
+        // Going through the entire area
+        #pragma acc parallel loop collapse(2)
+        for (int i = 1; i < nx-1; i++)
+            for (int j = 1; j < ny-1; j++)
+              Unp1[i][j] = ...
+
+   if (n % outputEvery == 0)  {
+   #pragma acc update host(Un[0:nx][0:ny])
+            save_png(Un[0], nx, ny, filename, 'c');
+    }
+   #pragma acc parallel loop collapse(2)
+              for (int i = 1; i < nx; i++)
+        {
+          for (int j = 1; j < ny; j++)
+            Un[i][j] = Unp1[i][j];
+        }
+    }
+ }
+
+.. code :: bash
+
+            time(us): 151
+    93: data region reached 2 times
+        42: kernel launched 2 times
+            grid: [2]  block: [128]
+            elapsed time(us): total=72 max=49 min=23 avg=36
+        93: data copyin transfers: 1
+             device time(us): total=45 max=45 min=45 avg=45
+    115: update directive reached 5 times
+        115: data copyout transfers: 5
+             device time(us): total=106 max=22 min=20 avg=21
+
+
+Optimize Loop performance
+-------------------------
+
+- The compiler is usually pretty good at choosing how to break up loop iterations to run well on parallel accelerators.
+
+- Sometimes we can obtain a little more performance by guiding the compiler to make specific choices. 
+
+Vectors, Workers, and Gangs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- OpenACC has three levels of parallelism 
+  - **Vector** threads work in SIMT (SIMD) fashion 
+  - **Workers** compute a vector 
+  - **Gangs** have one or more workers that share resources, such as streaming multiprocessor - Multiple gangs work independently
+
+- By default, when programming for a GPU, gang and vector parallelism is automatically applied. 
+
+.. image:: img/gang_worker_vector.png
+
+
+This image represents a single gang. When parallelizing our for loops, the loop iterations will be broken up evenly among a number of gangs. Each gang will contain a number of threads. These threads are organized into blocks. A worker is a row of threads. In the above graphic, there are 3 workers, which means that there are 3 rows of threads. The vector refers to how long each row is. So in the above graphic, the vector is 8, because each row is 8 threads long.
+
+
+.. code :: c
+
+ #pragma acc parallel num_gangs( 2 ) num_workers( 4 ) vector_length( 32 )
+ {
+    #pragma acc loop gang worker
+    for(int i = 0; i < N; i++)
+    {
+        #pragma acc loop vector
+        for(int j = 0; j < M; j++)
+        {
+            < loop code >
+        }
+    }
+ }
+
+- Avoid Wasting Threads, when parallelizing small arrays, you have to be careful that the number of threads within your vector is not larger than the number of loop iterations. 
+
+.. code :: c
+
+ #pragma acc kernels loop gang
+ for(int i = 0; i < 1000000000; i++)
+ {
+    #pragma acc loop vector(256)
+    for(int j = 0; j < 32; j++)
+    {
+        < loop code >
+    }
+ }
+
+ ...
+ 
+ #pragma acc kernels loop gang worker(8)
+ for(int i = 0; i < 1000000000; i++)
+ {
+    #pragma acc loop vector(32)
+    for(int j = 0; j < 32; j++)
+    {
+        < loop code >
+    }
+ }
+  
+- The Rule of 32 (Warps): The general rule of thumb for programming for NVIDIA GPUs is to always ensure that your vector length is a multiple of 32 (which means 32, 64, 96, 128, ... 512, ... 1024... etc.). This is because NVIDIA GPUs are optimized to use warps. Warps are groups of 32 threads that are executing the same computer instruction. 
+
+
+Collapse Clause
+^^^^^^^^^^^^^^^
+
+- The collapse clause allows us to transform a multi-dimensional loop nest into a single-dimensional loop. This process is helpful for increasing the overall length (which usually increases parallelism) of our loops, and will often help with memory locality. 
+
+.. code :: bash
+
+  #pragma acc parallel loop
+        for (int i = 1; i < nx-1; i++)
+        {
+  #pragma acc loop
+            for (int j = 1; j < ny-1; j++)
+            {
+               Unp1[i][j] = ...
+
+.. code :: bash
+
+  $ pgcc ... heat_equation_openacc_1.c
+         97, #pragma acc loop gang /* blockIdx.x */
+        100, #pragma acc loop vector(128) /* threadIdx.x */        
+
+  $ PGI_ACC_TIME=1 ./heat
+    93: compute region reached 500 times
+        93: kernel launched 500 times
+            grid: [198]  block: [128]
+            elapsed time(us): total=23,929 max=74 min=40 avg=47
+
+  #pragma acc parallel loop collapse(2) 
+        for (int i = 1; i < nx-1; i++)
+        {
+            for (int j = 1; j < ny-1; j++)
+            {
+               Unp1[i][j] = ...
+
+.. code :: bash
+
+  $ pgcc ... heat_equation_openacc_2.c
+         97, #pragma acc loop gang, vector(128) collapse(2) /* blockIdx.x threadIdx.x */
+         99,   /* blockIdx.x threadIdx.x collapsed */
+
+  $ PGI_ACC_TIME=1 ./heat 
+    93: compute region reached 500 times
+        93: kernel launched 500 times
+            grid: [307]  block: [128]
+            elapsed time(us): total=22,642 max=63 min=38 avg=45
+
 
 Summary
 -------
 
--  Data directive
+- Optimizing data movement
 
-   -  Structured data region
-   -  Clauses: ``copy``, ``present``, ``copyin``, ``copyout``,
-      ``create``
+ -  Data directive
+ -  Enter data & exit data
+ -  Unstructured data region
+ -  Update directive
+ -  Declare directive
 
--  Enter data & exit data
+- Optimizing loop performance
+ - loop gang worker vector
+ - collapse
 
-   -  Unstructured data region
-
--  Update directive
--  Declare directive
 

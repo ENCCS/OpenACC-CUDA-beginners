@@ -3,6 +3,14 @@
 Introduction to OpenACC
 =======================
 
+- Serial Computing on CPU
+
+ .. image:: img/serial_openaccc.png
+
+- Porting to GPU
+
+ .. image:: img/parallel_openacc.png
+
 What is OpenACC ?
 -----------------
 
@@ -29,62 +37,45 @@ OpenACC vs. CUDA/HIP
    -  Can access all features of the GPU hardware
    -  More optimization possibilities
 
-OpenACC execution model
------------------------
+How can OpenACC port code to GPU?
+--------------------------------
 
--  Host-directed execution with an attached accelerator
+- Compilers that support OpenACC usually require an option that enables the feature
 
-   -  Large part of the program is usually executed by the host
+   -  PGI (now NVIDIA HPC SDK): ``-acc``
+   -  Cray: ``-hacc``
+   -  GNU (partial support): ``-fopenacc``
+
+   - Without these options a regular CPU version is compiled!
+
+- OpenACC data model
+
+   -  host manages memory of the device
+   -  host copies data to/from the device
+
+- OpenACC execution model
+
+   -  Host-directed execution with an attached accelerator
+   -  Part of the program is usually executed by the host
    -  Computationally intensive parts are *offloaded* to the accelerator
       that executes *parallel regions*
 
--  Accelerator can have a separate memory
-
-   -  OpenACC exposes the separate memories through *data environment*
-      that defines the memory management and needed copy operations
-
-.. _openacc-execution-model-1:
-
-OpenACC execution model
------------------------
-
-.. container:: column
-
-   -  Program runs on the host CPU
-   -  Host offloads compute-intensive regions (*kernels*) and related
-      data to the accelerator GPU
-   -  Compute kernels are executed by the GPU
-
-.. container:: column
-
-   .. image:: img/execution-model.png
-
-OpenACC data model
-------------------
-
-.. container:: column
-
-   -  If host memory is separate from accelerator device memory
-
-      -  host manages memory of the device
-      -  host copies data to/from the device
-
-   -  When memories are not separate, no copies are needed (difference
-      is transparent to the user)
-
-.. container:: column
-
-   .. image:: img/data-movement.png
 
 OpenACC directive syntax
 ------------------------
 
-======= =============== =========== ==============
-\       sentinel        construct   clauses
-======= =============== =========== ==============
-C/C++   ``#pragma acc`` ``kernels`` ``copy(data)``
-Fortran ``!$acc``       ``kernels`` ``copy(data)``
-======= =============== =========== ==============
+======= =============== =========== ============== ================
+\       sentinel        construct   clauses          \
+======= =============== =========== ============== ================
+C/C++   ``#pragma acc`` ``data``    ``copy(data)`` data model
+\        \              ``update``  ``host(data)`` data model 
+\        \              ``kernels``   \            execution model  
+\        \              ``parallel``  \            execution model
+Fortran ``!$acc``       ``data``    ``copy(data)`` data model
+\       \               ``update``  ``host(data)`` data model
+\       \               ``kernels``  \             execution model
+\       \               ``parallel`` \             execution model
+======= =============== =========== ============== ================
 
 -  OpenACC uses compiler directives for defining compute regions (and
    data transfers) that are to be performed on a GPU
@@ -97,84 +88,25 @@ Fortran ``!$acc``       ``kernels`` ``copy(data)``
 
    -  ``if (condition)``, ``async(handle)``
 
-Compiling an OpenACC program
-----------------------------
+OpenACC data model
+------------------
+-  Define a region with data declared in the device memory
 
--  Compilers that support OpenACC usually require an option that enables
-   the feature
+   -  C/C++: ``#pragma acc data [clauses]`` 
+   -  Fortran: ``!$acc data [clauses]``
+   -  clauses can be ``copy``, ``copyin``, ``copyout``, and ``present``
 
-   -  PGI: ``-acc``
-   -  Cray: ``-h acc``
-   -  GNU (partial support): ``-fopenacc``
+-  Data transfers take place
 
--  Without these options a regular CPU version is compiled!
+   -  from the **host** to the **device** upon entry to the region
+   -  from the **device** to the **host** upon exit from the region
 
-OpenACC conditional compilation
--------------------------------
+-  Functionality defined by *data clauses*
+-  *Data clauses* can also be used in ``kernels`` and ``parallel``
+   constructs
 
--  Conditional compilation with ``_OPENACC`` macro:
-
-.. code:: c
-
-   #ifdef _OPENACC
-   device specific code
-   #else
-   host code
-   #endif
-
--  ``_OPENACC`` macro is defined as *yyyymm*, where *yyyy* and *mm*
-   refer to the year and month of when the specification supported by
-   the compiler was released
-
-OpenACC internal control variables
-----------------------------------
-
--  OpenACC has internal control variables
-
-   -  ``ACC_DEVICE_TYPE`` controls which type of accelerator d
-
-.. _`http://www.openacc.org`: http://www.openacc.org/
-
-Runtime API functions
----------------------
-
--  Low-level runtime API functions can be used to
-
-   -  Query the number and type of devices in the system
-   -  Initialize/shutdown the device(s)
-   -  Allocate/deallocate memory on the device(s)
-   -  Transfer data to/from the device(s)
-
--  Function definitions are in
-
-   -  C/C++ header file ``openacc.h``
-   -  ``openacc`` Fortran module (``openacc_lib.h`` header in some
-      implementations)
-
-OpenACC compute constructs
---------------------------
-
-OpenACC levels of parallelism
------------------------------
-
-.. container:: column
-
-   -  OpenACC has three levels of parallelism
-
-      -  **Vector** threads work in SIMT (SIMD) fashion
-      -  **Workers** compute a vector
-      -  **Gangs** have one or more workers that share resources, such
-         as streaming multiprocessor
-      -  Multiple gangs work independently
-
-.. container:: column
-
-   .. image:: img/vector-workers-gang.png
-
-.. _openacc-compute-constructs-1:
-
-OpenACC compute constructs
---------------------------
+OpenACC execution model
+-----------------------
 
 -  OpenACC includes two different approaches for defining parallel
    regions
@@ -189,8 +121,9 @@ OpenACC compute constructs
 
 -  With similar work sharing, both can perform equally well
 
+
 Compute constructs: ``kernels``
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Define a region to be transferred to a sequence of kernels for
    execution on the accelerator device
@@ -202,121 +135,50 @@ Compute constructs: ``kernels``
    separate *parallel kernel*
 -  The *kernels* will be executed in a *sequential* order
 
-Example: ``kernels``
---------------------
-
-.. tabs::
-
-   .. tab:: C/C++
-
-      .. code:: c
-
-         /* Compute y=a*x+y */
-	 void accdaxpy(int n, double a,
-		       const double * restrict x,
-		       double * restrict y)
-	 {
-	     #pragma acc kernels
-	     for (int j=0; j<n; ++j)
-		 y[j] += a * x[j];
-	 }
-
-	 ...
-
-	 /* An example call to accdaxpy */
-	 accdaxpy(1<<16, 3.14, x, y);
-
-
-   .. tab:: Fortran
-
-      .. code:: fortran
-
-	 ! Compute y=a*x+y
-	 subroutine accdaxpy(n, a, x, y)
-         
-             integer :: n, j
-             real(kind=8) :: a, x(n), y(n)
-
-	     !$acc kernels
-             do j = 1,n
-                 y(j) = y(j) + a * x(j)
-             end do  
-             !$acc end kernels
-	 end subroutine accdaxpy
-
-         ! An example call to accdaxpy
-	 call accdaxpy(65536, 3.14D0, x, y)
-
-
-
-Compute constructs: `parallel`
-------------------------------
+Compute constructs: ``parallel``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Define a region to be executed on the accelerator device
-    - C/C++: `#pragma acc parallel [clauses]`
-    - Fortran: `!$acc parallel [clauses]`
+    - C/C++: ``#pragma acc parallel [clauses]``
+    - Fortran: ``!$acc parallel [clauses]``
 - Without any *work sharing* constructs, the whole region is executed
   *redundantly* multiple times
     - Given a sequence of loop nests, each loop nest may be executed
       simultaneously
 
 
-Work sharing construct: `loop`
-------------------------------
+Work sharing construct: ``loop``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Define a loop to be parallelized
-    - C/C++: `#pragma acc loop [clauses]`
-    - Fortran: `!$acc loop [clauses]`
+    - C/C++: ``#pragma acc loop [clauses]``
+    - Fortran: ``!$acc loop [clauses]``
     - Must be followed by a C/C++ or Fortran loop construct.
-    - Combined constructs with `parallel` and `kernels`
-	- `#pragma acc kernels loop` / `!$acc kernels loop`
-	- `#pragma acc parallel loop / !$acc parallel loop`
-- Similar in functionality to OpenMP `for/do` construct
-- Loop index variables are `private` variables by default
+    - Combined constructs with ``parallel`` and ``kernels``
+        - ``#pragma acc kernels loop / !$acc kernels loop``
+        - ``#pragma acc parallel loop / !$acc parallel loop``
+- Similar in functionality to OpenMP ``for/do`` construct
+- Loop index variables are ``private`` variables by default
 
 
-Example: `parallel`
-^^^^^^^^^^^^^^^^^^^
+.. typealong:: Adding two vector 
 
-.. tabs::
+   .. tabs::
 
-   .. tab:: C/C++
+      .. tab:: cpu
 
-      .. code:: c
+         .. literalinclude:: ../examples/OpenACC/vector-sum/solution/c/sum.c
+                        :language: c
 
-         /* Compute y=a*x+y */
-	 void accdaxpy(int n, double a,
-		       const double * restrict x,
-		       double * restrict y)
-	 {
-	     #pragma acc parallel loop
-	     for (int j=0; j<n; ++j)
-		 y[j] += a * x[j];
-         }
+      .. tab:: OpenACC parallel
 
-	 /* An example call to accdaxpy */
-	 accdaxpy(1<<16, 3.14, x, y);
+         .. literalinclude:: ../examples/OpenACC/vector-sum/solution/c/sum_parallel.c
+                        :language: c
 
-   .. tab:: Fortran
+      .. tab:: OpenACC kernels
 
-      .. code:: fortran
-
-         ! Compute y=a*x+y
-	 subroutine accdaxpy(n, a, x, y)
-	   integer :: n, j
-	   real(kind=8) :: a, x(n), y(n)
-
-	   !$acc parallel loop
-	   do j = 1,n
-	      y(j) = y(j) + a * x(j)
-	   end do
-	   !$acc end parallel loop
-	 end subroutine accdaxpy
-
-	 ...
-
-	 ! An example call to accdaxpy
-	 call accdaxpy(65536, 3.14D0, x, y)
+         .. literalinclude:: ../examples/OpenACC/vector-sum/solution/c/sum_kernels.c
+                        :language: c
 
 .. _compiler-diagnostics-1:
 
@@ -335,11 +197,6 @@ Compiler diagnostics
    -  Compiler flags
    -  Level and formatting of information
 
-heat.o: heat.F90
-
-
-
- compiler
 
 -  Diagnostics is controlled by compiler flag ``-Minfo=option``
 -  Useful options:
@@ -347,61 +204,66 @@ heat.o: heat.F90
    -  ``accel`` – operations related to the accelerator
    -  ``all`` – print all compiler output
    -  ``intensity`` – print loop computational intensity info
-   -  ``ccff`` – add extra information to the object files for use by
-      tools
 
 Example: ``-Minfo``
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 .. code:: bash
 
-   $ pgcc -fast -Minfo=all -c util.c
+  $ pgcc -g -O3 -acc -Minfo=acc sum_parallel.c -o sum
+ main:
+     21, Generating copy(vecA[:],vecB[:],vecC[:]) [if not already present]
+     23, Generating Tesla code
+         25, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
 
-   malloc_2d:
-        28, Loop not vectorized: data dependency
-            Loop unrolled 8 times
-            Generated 1 prefetches in scalar loop
-   eval_point:
-        38, Loop not vectorized/parallelized: potential early exits
+  $ pgcc -g -O3 -acc -Minfo=accel sum_kernels.c -o sum
+  main:
+     21, Generating copy(vecA[:],vecB[:],vecC[:]) [if not already present]
+     23, Loop is parallelizable
+         Generating Tesla code
+         23, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
 
-   $ pgcc -fast -Minfo=intensity -c util.c
-   malloc_2d:
-        28, Intensity = 3.00
-   eval_point:
-        38, Intensity = 8.00
 
-.. _example--minfo-1:
-
-Example: ``-Minfo``
--------------------
-
+Example: ``PGI_ACC_TIME=1``
+---------------------------
 .. code:: bash
 
-   $ pgcc -acc -Minfo=all doubleloops.c
+  $ cat slurm-13186502.out  #output of sum_parallel.c
+  Accelerator Kernel Timing data
+  main  NVIDIA  devicenum=0
+    time(us): 451
+    21: data region reached 2 times
+        21: data copyin transfers: 3
+             device time(us): total=245 max=100 min=71 avg=81
+        29: data copyout transfers: 3
+             device time(us): total=206 max=72 min=67 avg=68
+    23: compute region reached 1 time
+        23: kernel launched 1 time
+            grid: [800]  block: [128]
+            elapsed time(us): total=41 max=41 min=41 avg=41
+   Reduction sum: 1.2020569031119108
 
-   init:
-        38, Memory zero idiom, loop replaced by call to __c_mzero8
-        44, Memory set idiom, loop replaced by call to __c_mset8
-   main:
-        74, Generating Tesla code
-            77, #pragma acc loop gang /* blockIdx.x */
-            79, #pragma acc loop vector(128) /* threadIdx.x */
-        74, Generating implicit copyin(u[:1024][:1024]) [if not already present]
-            Generating implicit copyout(unew[1:1022][1:1022]) [if not already present]
-        79, Loop is parallelizable
-        84, Generating Tesla code
-            87, #pragma acc loop gang /* blockIdx.x */
-            89, #pragma acc loop vector(128) /* threadIdx.x */
-        84, Generating implicit copyin(unew[:1024][:1024]) [if not already present]
-            Generating implicit copyout(u[1:1022][1:1022]) [if not already present]
-        89, Loop is parallelizable
+ $ cat slurm-13186514.out
+  Accelerator Kernel Timing data
+  main  NVIDIA  devicenum=0
+    time(us): 453
+    21: data region reached 2 times
+        21: data copyin transfers: 3
+             device time(us): total=247 max=100 min=72 avg=82
+        26: data copyout transfers: 3
+             device time(us): total=206 max=73 min=66 avg=68
+    23: compute region reached 1 time
+        23: kernel launched 1 time
+            grid: [800]  block: [128]
+            elapsed time(us): total=40 max=40 min=40 avg=40
+ Reduction sum: 1.2020569031119108
+
 
 Summary
 -------
 
 -  OpenACC is an directive-based extension to C/Fortran programming
    languages for accelerators
--  Supports separate memory on the accelerator
--  Compute constructs: parallel and kernels
+-  Compute constructs: data, parallel and kernels
 -  Compiler diagnostics
 

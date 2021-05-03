@@ -287,6 +287,14 @@ In the following example, we will change the GPU kernel to use the shared memory
 
     3. Fill in all the central elements of the array by using all the threads in the block.
 
+    .. figure:: img/s_Un.png
+        :align: center
+
+        The shared memory array s_Un, and how it maps to the global thread grid.
+        In addition to the central region (yellow), the shared memory adday should contain the border elements (green), so that we can compute all the values of the function Un on the next time step.
+        In the boder blocks the border elements are not populated because the values of the function there are taken from the boundary conditions.
+        Note that trying to populate these region will lead to adressing memory outside the allocated array, so proper conditionals have to be added to avoid segmentation fault errors.
+
     4. Use the threads that are next to the border of the block to fill the bordering parts of the array.
        Make sure that you are not accessing the data outside the allocated global memory array.
 
