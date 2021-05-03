@@ -64,12 +64,11 @@ program heat_solve
   enddo
 
   ! Main loop
-!$ACC DATA COPYIN(Un) CREATE(Unp1)
   do n = 1, nsteps
      ! Going through the entire area
 
 !!$ACC PARALLEL LOOP COPY(Un, Unp1)
-!$ACC PARALLEL LOOP COLLAPSE(2) PRESENT(Un,Unp1)
+!$ACC PARALLEL LOOP COLLAPSE(2) COPYIN(Un) COPYOUT(Unp1)
      do j = 2, ny-1
         do i = 2, nx-1
            uij = Un(i,j)
@@ -81,20 +80,17 @@ program heat_solve
 
      ! Write the output if needed
      if (mod(n, outputEvery) == 0) then
-!$ACC UPDATE HOST(Un)
         write(filename,'(A5,I5.5,A4,A)')  'heat_', n, '.png'
         call output(Un, nx, ny, filename)
      endif
 
      ! Copy the data for the next timestep
-!$ACC PARALLEL LOOP COLLAPSE(2)
      do j = 1, ny
         do i = 1, nx
            Un(i,j) = Unp1(i,j)
         enddo
      enddo
   enddo
-!$ACC END DATA
 
   ! Release the memory
   deallocate(Un);
