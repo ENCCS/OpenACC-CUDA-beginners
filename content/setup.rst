@@ -19,7 +19,33 @@ installations of CUDA and compilers supporting OpenACC.
 
    If you do not have access to any GPU cluster, you can follow the instructions
    below on how to use Google Colab.
+
    
+.. callout:: Download example codes
+
+  The C and Fortran codes used for exercises in this lesson are contained
+  in the same Git repository as the lesson material, so it is easiest to clone
+  the repository by::
+
+    # if you have set up ssh keys on GitHub:
+    git clone git@github.com:ENCCS/OpenACC-CUDA-beginners.git
+    # otherwise:
+    git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git
+
+  After that, navigate to the examples directory::
+
+    cd OpenACC-CUDA-beginners/examples
+
+  OpenACC examples are contained in the ``OpenACC`` directory and CUDA examples
+  are in the ``CUDA`` directory.
+
+  Code examples on the main branch use PGI compilers, which are available on e.g.
+  the Tetralith cluster where the Nvidia HPC-SDK is installed. If you are on another
+  cluster which doesn't have PGI compilers, or you are using Google Colab, you should
+  instead use the GNU version of the examples by changing to the ``colab_gcc`` branch::
+
+    git checkout colab_gcc
+
 
 Running on Tetralith
 --------------------
@@ -103,6 +129,14 @@ this environment, type::
   module use /proj/snic2021-22-274/hpc_sdk/modulefiles
   module add nvhpc
 
+How to edit files
+^^^^^^^^^^^^^^^^^
+
+If you are used to emacs or vim, you can use these on Tetralith. If you're not
+used to these text editors, a good choice is to use the nano editor. Type
+``nano <filename>`` to open a file. You can edit it as you want, save it by pressing
+``CTRL-o`` and exit by ``CTRL-x``.
+  
 How to submit jobs
 ^^^^^^^^^^^^^^^^^^
 
