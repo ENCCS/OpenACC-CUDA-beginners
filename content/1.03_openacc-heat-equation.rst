@@ -427,6 +427,14 @@ Collapse Clause
             elapsed time(us): total=22,642 max=63 min=38 avg=45
 
 
+.. challenge:: More advanced OpenACC usage
+
+  Explore the code in the subfolders ``jacobi/``, ``pi_monte_carlo/`` and ``HeatEquation/``
+  and try to identify possible parallel regions for GPU offloading. Pick one of the codes 
+  and try to implement directives. Compile either by ``./compile.sh`` (on Tetralith) or
+  ``make`` on Colab, and run by either ``sbatch job.sh`` (on Tetralith) or ``./name-of-executable``
+  (on Colab).
+  
 .. keypoints::
 
    - Optimizing data movement:
