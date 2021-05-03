@@ -196,7 +196,7 @@ can be to use the `Google Colab service <https://colab.research.google.com/>`__
 where you can get access to GPUs in the cloud through Jupyter notebooks.
 **Note: This requires that you have a Google account.**
 
-- First [click this link](https://colab.research.google.com/github/ENCCS/OpenACC-CUDA-beginners/blob/colab_gcc/examples/openACC_CUDA_colab.ipynb) and enter your Google login information
+- First click the "Open in Colab" button on https://colab.research.google.com/github/ENCCS/OpenACC-CUDA-beginners/blob/colab_gcc/examples/openACC_CUDA_colab.ipynb and enter your Google login information.
 - A Google-flavored Jupyter notebook should open on Colab which contains commands to get up and
   running on Colab. You need to press ``SHIFT-ENTER`` on the cells to execute them.
 - To get access to a GPU, click on the *Runtime* menu and select *Change runtime type*.
