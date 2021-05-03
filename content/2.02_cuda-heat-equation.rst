@@ -298,6 +298,6 @@ In the following example, we will change the GPU kernel to use the shared memory
     4. Use the threads that are next to the border of the block to fill the bordering parts of the array.
        Make sure that you are not accessing the data outside the allocated global memory array.
 
-    5. Add blocking syncronization with |__syncthreads()| after all the data is read.
+    5. Add blocking syncronization with |__syncthreads| after all the data is read.
 
     6. Change the compute part to use the shared memory instead of the global memory.
