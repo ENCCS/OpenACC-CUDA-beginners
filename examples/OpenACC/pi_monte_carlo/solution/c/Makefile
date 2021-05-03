@@ -4,10 +4,6 @@ ifeq ($(COMP),pgi)
 CC=pgcc
 CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia -L/proj/snic2021-22-274/CUDA/11.2.0/lib64 -lcurand
 RUN=
-else ifeq ($(COMP),gnu)
-CC=gcc
-CCFLAGS=-g -O3 -fopenacc -I/usr/local/cuda-11.0/include/ -L/usr/local/cuda-11.0/lib64/ -lcurand
-RUN=
 endif
 
 EXE=pi_MC_openacc

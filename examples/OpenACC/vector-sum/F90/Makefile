@@ -4,10 +4,6 @@ ifeq ($(COMP),pgi)
 CC=pgf90
 CCFLAGS=-g -O3 -acc -Minfo=accel -ta=nvidia
 RUN=
-else ifeq ($(COMP),gnu)
-CC=gfortran
-CCFLAGS=-g -O3 -fopenacc
-RUN=
 endif
 
 EXE=sum
