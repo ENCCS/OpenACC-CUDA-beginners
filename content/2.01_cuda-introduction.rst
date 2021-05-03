@@ -234,7 +234,7 @@ To reflect this hierarchy on a software level, threads are grouped in identicall
 Each block is assigned into a streaming module for execution.
 This collection of the thread blocks is usually called "grid", which also can be multi-dimensional.
 
-Although it may seem a bit complication at the beginning, the grouping of threads open extra opportunities for synchronization and data exchange.
+Although it may seem a bit complicated at the beginning, the grouping of threads open extra opportunities for synchronization and data exchange.
 Since threads in a block are executed on a same SM, they can shared the data and can do fast communications.
 This can be leveraged when designing and optimizing the code for GPU execution, and we will touch this topic later.
 
@@ -304,7 +304,7 @@ Since one has to make sure that the total number of threads (i.e. ``numBlocks*th
 So ``numBlocks`` can be defined as ``numElements/threadsPerBlock + 1``, where ``numElements`` is a number of elements in the vector.
 
 
-Build-in CUDA vector types
+Built-in CUDA vector types
 --------------------------
 
 CUDA has `built-in vector types <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#built-in-vector-types>`_ derived from basic integer and floating point types.
