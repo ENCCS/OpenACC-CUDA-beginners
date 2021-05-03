@@ -289,7 +289,8 @@ Example: ``PGI_ACC_TIME=1``
    - Remember to ask plenty of questions to the workshop helper or in hackMD!
 
    The exercises can be found under ``OpenACC-CUDA-beginners/examples/OpenACC`` in subfolders
-   ``hello-world``, ``vector-sum`` and ``doubleloop``.
+   ``hello-world``, ``vector-sum`` and ``doubleloop``. Solutions can be found under the ``solutions``
+   subfolders.
    
    1. As usual, we start with Hello World. Inspect either ``hello.c`` or ``hello.F90``. Compile it
       by running the compilation script: ``./compile.sh``. On Tetralith, run the code using the job
