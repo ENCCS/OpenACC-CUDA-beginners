@@ -71,7 +71,7 @@ Tentative schedule
    * - 10:30 - 10:40
      - Break
    * - 10:40 - 11:10
-     - Real-life example
+     - Introduction to OpenACC (cont.)
    * - 11:10 - 11:40
      - Break-out rooms
    * - 11:40 - 12:00

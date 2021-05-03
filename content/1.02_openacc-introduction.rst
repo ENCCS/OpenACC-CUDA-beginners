@@ -172,7 +172,7 @@ Work sharing construct: ``loop``
 - Loop index variables are ``private`` variables by default
 
 
-.. typealong:: Adding two vector 
+.. typealong:: Adding two vectors
 
    .. tabs::
 
