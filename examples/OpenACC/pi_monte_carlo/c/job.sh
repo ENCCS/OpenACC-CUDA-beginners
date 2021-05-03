@@ -3,6 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-task=1
 #SBATCH --time=00:15:00
+#SBATCH --reservation=openacc-cuda-workshop-2021-05-04
 
 # load nvhpc module
 module use /proj/snic2021-22-274/hpc_sdk/modulefiles
