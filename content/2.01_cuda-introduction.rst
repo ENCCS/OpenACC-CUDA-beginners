@@ -339,7 +339,7 @@ The ``threadIdx``, ``blockIdx`` and ``blockDim`` variables are all of type ``uin
          .. literalinclude:: ../examples/CUDA/VectorDotProduct/vector_dot_product_gpu_ref.cu
             :language: CUDA
 
-      Note that .cpp file has to both be compiled with nvcc and have``#include <cuda_runtime.h>`` line.
+      Note that .cpp file has to both be compiled with nvcc and have ``#include <cuda_runtime.h>`` line.
       This is because normal compiler is not aware of CUDA types.
       Even though the CUDA compiler will pass the compilation to normal compiler, it is aware of the CUDA runtime and will be able to locate the CUDA runtime header.
       The include is not needed in .cu files, since nvcc will automatically add it.
