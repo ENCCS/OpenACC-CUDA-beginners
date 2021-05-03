@@ -20,7 +20,7 @@ program vectorsum
   !$acc parallel
   !$acc loop
   do i = 1, nx
-     vecC(i) = mul(vecA(i), vecB(i))
+     vecC(i) = add(vecA(i), vecB(i))
   end do
   !$acc end loop
   !$acc end parallel loop
@@ -30,13 +30,13 @@ program vectorsum
 
 contains
 
-  real(kind=rk) function mul(a, b)
+  real(kind=rk) function add(a, b)
 !$acc routine seq
     implicit none
     real(kind=rk), intent(in) :: a, b
     
-    mul = a * b
+    add = a + b
     return 
-  end function mul
+  end function add
   
 end program vectorsum

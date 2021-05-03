@@ -18,7 +18,7 @@ program vectorsum
   end do
 
   do i = 1, nx
-     vecC(i) = vecA(i) * vecB(i)
+     vecC(i) = vecA(i) + vecB(i)
   end do
 
   ! Compute the check value

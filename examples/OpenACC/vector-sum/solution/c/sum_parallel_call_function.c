@@ -7,9 +7,9 @@
 
 // return a*b;
 #pragma acc routine seq
-double mul(double a, double b)
+double add(double a, double b)
 {
-    return a * b;
+    return a + b;
 }
 
 int main(void)
@@ -28,7 +28,7 @@ int main(void)
     {
 #pragma acc loop
         for (i = 0; i < NX; i++) {
-            vecC[i] = mul(vecA[i], vecB[i]);
+            vecC[i] = add(vecA[i], vecB[i]);
         }
     }
 

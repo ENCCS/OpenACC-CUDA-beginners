@@ -22,7 +22,7 @@ int main(void)
      * vecC = vecA + vecB
      */
     for (i = 0; i < NX; i++) {
-       vecC[i] = vecA[i] * vecB[i];
+       vecC[i] = vecA[i] + vecB[i];
     } 
 
     sum = 0.0;

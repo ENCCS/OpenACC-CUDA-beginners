@@ -21,7 +21,7 @@ program vectorsum
   !$acc parallel
   !$acc loop
   do i = 1, nx
-     vecC(i) = vecA(i) * vecB(i)
+     vecC(i) = vecA(i) + vecB(i)
   end do
   !$acc end loop
   !$acc end parallel 
