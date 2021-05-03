@@ -196,17 +196,16 @@ can be to use the `Google Colab service <https://colab.research.google.com/>`__
 where you can get access to GPUs in the cloud through Jupyter notebooks.
 **Note: This requires that you have a Google account.**
 
-- First go to https://colab.research.google.com/ and log in with your Google account.
-- Then click *New Notebook*, and after it opens rename it by clicking on the name
-  field at the top.
+- First [click this link](https://colab.research.google.com/github/ENCCS/OpenACC-CUDA-beginners/blob/colab_gcc/examples/openACC_CUDA_colab.ipynb) and enter your Google login information
+- A Google-flavored Jupyter notebook should open on Colab which contains commands to get up and
+  running on Colab. You need to press ``SHIFT-ENTER`` on the cells to execute them.
 - To get access to a GPU, click on the *Runtime* menu and select *Change runtime type*.
   Choose GPU as a Hardware accelerator. It might take a minute for your notebook to
   connect to a GPU.
-- In the first code cell (the field with a play button on the left), type
-  `!nvidia-smi` and press the play button (or hit SHIFT-ENTER) to get
-  information on the GPU - you will likely have been assigned a K80.
-- Clone the lesson repository to get access to the exercise material:
-  `!git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git`
+- To check whether a GPU has been connected to your session, run the code cell with the ``!nvidia-smi``
+  command by hitting ``SHIFT-ENTER`` on it.
+- Click through the next few cells to clone the material, change to the colab branch and enter the
+  exercise directories.
 
 All work on Google Colab needs to be done through a Jupyter notebook.
 Here is how you can work on the exercises:
@@ -224,9 +223,7 @@ Here is how you can work on the exercises:
 - In the file browser, navigate to the subfolder of the exercise you wish to work on and
   click on the three dots next to the directory and select "Copy path" (see red arrow in image below).
 - In a code cell, paste the path into a ``%cd`` magic command to change directory.
-- After changing directory, you can for example compile code with Makefiles by ``!make``. **Note**:
-  all prepared makefiles have GPI and GNU compilation options, and you have to change the top line to
-  ``COMP=gnu`` when compiling on Google Colab.
+- After changing directory, you can for example compile code with Makefiles by ``!make``. 
 - You can open a text editor by double-clicking a file. This opens an editor on the right of the
   notebook and you can edit it there and save by hitting ``CTRL-s`` or going through the *File* menu.
   **Note**: it is for some reason impossible to open files with ``.cu`` ending in the Colab editor,
