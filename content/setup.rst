@@ -213,7 +213,9 @@ Here is how you can work on the exercises:
 
 - New code or text (markdown) cells can be created by clicking the "+Code" and "+Text" buttons,
   or through the keyboard shortcut ``CTRL-m b``. Cells can be deleted by ``CTRL-m d``.
-  Cells are executed by pressing ``CTRL-ENTER`` or pressing the Play button.
+  Cells are executed by pressing ``SHIFT-ENTER`` or pressing the Play button. Pressing instead
+  ``ALT-ENTER`` runs a cell and creates a new one underneath, while ``CTRL-ENTER`` runs the cell
+  and stays on the same cell.
 - General shell commands can be entered into a code cell by prepending it with
   exclamation mark (e.g. ``!ls``). Some shell commands have corresponding "magic" commands (e.g. "%ls"),
   and some commands need to use the magic form. In particular, to change directory you need ``%cd some/path``.
@@ -222,10 +224,14 @@ Here is how you can work on the exercises:
 - In the file browser, navigate to the subfolder of the exercise you wish to work on and
   click on the three dots next to the directory and select "Copy path" (see red arrow in image below).
 - In a code cell, paste the path into a ``%cd`` magic command to change directory.
-- After changing directory, you can for example compile code with Makefiles by ``!make``.
+- After changing directory, you can for example compile code with Makefiles by ``!make``. **Note**:
+  all prepared makefiles have GPI and GNU compilation options, and you have to change the top line to
+  ``COMP=gnu`` when compiling on Google Colab.
 - You can open a text editor by double-clicking a file. This opens an editor on the right of the
   notebook and you can edit it there and save by hitting ``CTRL-s`` or going through the *File* menu.
-
+  **Note**: it is for some reason impossible to open files with ``.cu`` ending in the Colab editor,
+  so open instead the symbolic links with ``.cpp`` ending when working on these files. 
+  
 .. image:: img/colab.png
    :scale: 50%	   
 
