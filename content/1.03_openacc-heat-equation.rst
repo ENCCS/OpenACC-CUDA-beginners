@@ -221,7 +221,7 @@ Data construct: example
 
    .. tabs::
 
-      .. tab:: cpu
+      .. tab:: CPU
 
          .. literalinclude:: ../examples/OpenACC/HeatEquation/c/heat_equation.c
                                                 :language: c
@@ -322,7 +322,9 @@ Optimize Loop performance
 
 Vectors, Workers, and Gangs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 - OpenACC has three levels of parallelism 
+
   - **Vector** threads work in SIMT (SIMD) fashion 
   - **Workers** compute a vector 
   - **Gangs** have one or more workers that share resources, such as streaming multiprocessor - Multiple gangs work independently
@@ -431,14 +433,15 @@ Summary
 
 - Optimizing data movement
 
- -  Data directive
- -  Enter data & exit data
- -  Unstructured data region
- -  Update directive
- -  Declare directive
+  -  Data directive
+  -  Enter data & exit data
+  -  Unstructured data region
+  -  Update directive
+  -  Declare directive
 
 - Optimizing loop performance
- - loop gang worker vector
- - collapse
+
+  - loop gang worker vector
+  - collapse
 
 

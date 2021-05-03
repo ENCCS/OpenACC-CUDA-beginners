@@ -20,13 +20,14 @@ What is OpenACC ?
    -  High level GPU programming
    -  Large similarity to OpenMP directives
 
--  Supports for both C/C++ and Fortran bindings
--  More about OpenACC standard: `http://www.openacc.org`_
+-  Support for both C/C++ and Fortran bindings
+-  Extensive guides, tutorials, code samples and documentation on the OpenACC standard
+   can be found at `www.openacc.org <http://www.openacc.org>`_.
 
-OpenACC vs. CUDA/HIP
---------------------
+OpenACC vs. CUDA or HIP
+-----------------------
 
--  Why OpenACC and not CUDA/HIP?
+-  Why OpenACC and not `CUDA <https://en.wikipedia.org/wiki/CUDA>`_ / `HIP <https://en.wikipedia.org/wiki/GPUOpen#AMD_Boltzmann_Initiative>`_?
 
    -  Easier to work with
    -  Porting of existing software requires less work
@@ -34,11 +35,11 @@ OpenACC vs. CUDA/HIP
 
 -  Why CUDA/HIP and not OpenACC?
 
-   -  Can access all features of the GPU hardware
+   -  Get access to all features of the GPU hardware
    -  More optimization possibilities
 
-How can OpenACC port code to GPU?
---------------------------------
+How to port code to GPU with OpenACC?
+-------------------------------------
 
 - Compilers that support OpenACC usually require an option that enables the feature
 
@@ -64,18 +65,25 @@ How can OpenACC port code to GPU?
 OpenACC directive syntax
 ------------------------
 
-======= =============== =========== ============== ================
-\       sentinel        construct   clauses          \
-======= =============== =========== ============== ================
-C/C++   ``#pragma acc`` ``data``    ``copy(data)`` data model
-\        \              ``update``  ``host(data)`` data model 
-\        \              ``kernels``   \            execution model  
-\        \              ``parallel``  \            execution model
-Fortran ``!$acc``       ``data``    ``copy(data)`` data model
-\       \               ``update``  ``host(data)`` data model
-\       \               ``kernels``  \             execution model
-\       \               ``parallel`` \             execution model
-======= =============== =========== ============== ================
++---------+-----------------+--------------+----------------+------------------+
+|         | sentinel        | construct    |  clauses       |                  |
++=========+=================+==============+================+==================+
+| C/C++   | ``#pragma acc`` | ``data``     | ``copy(data)`` | data model       |
+|         |                 +--------------+----------------+------------------|
+|         |                 | ``update``   | ``host(data)`` | data model       |
+|         |                 +--------------+----------------+------------------|
+|         |                 | ``kernels``  |                | execution model  |
+|         |                 +--------------+----------------+------------------|
+|         |                 | ``parallel`` |                | execution model  |
++---------+-----------------+--------------+----------------+------------------+
+| Fortran | ``!$acc``       | ``data``     | ``copy(data)`` | data model       |
+|         |                 +--------------+----------------+------------------|
+|         |                 | ``update``   | ``host(data)`` | data model       |
+|         |                 +--------------+----------------+------------------|
+|         |                 | ``kernels``  |                | execution model  |
+|         |                 +--------------+----------------+------------------|
+|         |                 | ``parallel`` |                | execution model  |
++---------+-----------------+--------------+----------------+------------------+
 
 -  OpenACC uses compiler directives for defining compute regions (and
    data transfers) that are to be performed on a GPU
@@ -136,14 +144,17 @@ Compute constructs: ``kernels``
 -  The *kernels* will be executed in a *sequential* order
 
 Compute constructs: ``parallel``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Define a region to be executed on the accelerator device
-    - C/C++: ``#pragma acc parallel [clauses]``
-    - Fortran: ``!$acc parallel [clauses]``
+
+   - C/C++: ``#pragma acc parallel [clauses]``
+   - Fortran: ``!$acc parallel [clauses]``
+
 - Without any *work sharing* constructs, the whole region is executed
   *redundantly* multiple times
-    - Given a sequence of loop nests, each loop nest may be executed
+
+  - Given a sequence of loop nests, each loop nest may be executed
       simultaneously
 
 
@@ -165,7 +176,7 @@ Work sharing construct: ``loop``
 
    .. tabs::
 
-      .. tab:: cpu
+      .. tab:: CPU
 
          .. literalinclude:: ../examples/OpenACC/vector-sum/solution/c/sum.c
                         :language: c
@@ -211,12 +222,14 @@ Example: ``-Minfo``
 .. code:: bash
 
   $ pgcc -g -O3 -acc -Minfo=acc sum_parallel.c -o sum
- main:
+
+  main:
      21, Generating copy(vecA[:],vecB[:],vecC[:]) [if not already present]
      23, Generating Tesla code
          25, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
 
   $ pgcc -g -O3 -acc -Minfo=accel sum_kernels.c -o sum
+
   main:
      21, Generating copy(vecA[:],vecB[:],vecC[:]) [if not already present]
      23, Loop is parallelizable
@@ -225,10 +238,12 @@ Example: ``-Minfo``
 
 
 Example: ``PGI_ACC_TIME=1``
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. code:: bash
 
   $ cat slurm-13186502.out  #output of sum_parallel.c
+
   Accelerator Kernel Timing data
   main  NVIDIA  devicenum=0
     time(us): 451
@@ -244,7 +259,8 @@ Example: ``PGI_ACC_TIME=1``
    Reduction sum: 1.2020569031119108
 
  $ cat slurm-13186514.out
-  Accelerator Kernel Timing data
+
+ Accelerator Kernel Timing data
   main  NVIDIA  devicenum=0
     time(us): 453
     21: data region reached 2 times
