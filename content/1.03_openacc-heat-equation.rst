@@ -427,20 +427,19 @@ Collapse Clause
             elapsed time(us): total=22,642 max=63 min=38 avg=45
 
 
-Summary
--------
+.. keypoints::
 
-- Optimizing data movement
+   - Optimizing data movement:
 
-  -  Data directive
-  -  Enter data & exit data
-  -  Unstructured data region
-  -  Update directive
-  -  Declare directive
+     -  Data directive
+     -  Enter data & exit data
+     -  Unstructured data region
+     -  Update directive
+     -  Declare directive
 
-- Optimizing loop performance
+   - Optimizing loop performance:
 
-  - loop gang worker vector
-  - collapse
+     - loop gang worker vector
+     - collapse
 
 

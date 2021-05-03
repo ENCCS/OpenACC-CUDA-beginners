@@ -275,11 +275,10 @@ Example: ``PGI_ACC_TIME=1``
  Reduction sum: 1.2020569031119108
 
 
-Summary
--------
+.. keypoints::
 
--  OpenACC is an directive-based extension to C/Fortran programming
-   languages for accelerators
--  Compute constructs: data, parallel and kernels
--  Compiler diagnostics
+   -  OpenACC is an directive-based extension to C/Fortran programming
+      languages for accelerators
+   -  Compute constructs: data, parallel and kernels
+   -  Compiler diagnostics
 
