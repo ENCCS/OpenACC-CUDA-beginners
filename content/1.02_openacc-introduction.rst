@@ -274,6 +274,36 @@ Example: ``PGI_ACC_TIME=1``
             elapsed time(us): total=40 max=40 min=40 avg=40
  Reduction sum: 1.2020569031119108
 
+.. challenge:: Hello World, vector sum and double loop
+
+   Now it's your turn to port a few simple codes to GPUs using OpenACC directives!
+   You will first need to download the exercises:
+
+   - If you are using a cluster, follow the instructions under "Downloading exercises" in
+     the :ref:`setup`.
+   - If you are using Google Colab, the commands to clone and explore the code repository
+     are already in the template
+     `Colab notebook <https://colab.research.google.com/github/ENCCS/OpenACC-CUDA-beginners/blob/colab_gcc/examples/openACC_CUDA_colab.ipynb>`_.
+   - Instructions for using the Tetralith cluster or the Google Colab
+     cloud can be found in the :ref:`setup` section.
+   - Remember to ask plenty of questions to the workshop helper or in hackMD!
+
+   The exercises can be found under ``OpenACC-CUDA-beginners/examples/OpenACC`` in subfolders
+   ``hello-world``, ``vector-sum`` and ``doubleloop``.
+   
+   1. As usual, we start with Hello World. Inspect either ``hello.c`` or ``hello.F90``. Compile it
+      by running the compilation script: ``./compile.sh``. On Tetralith, run the code using the job
+      script, ``sbatch job.sh``, and investigate the output. On Colab, execute the code directly
+      by ``./hello``.
+   2. The vector sum code is slightly trickier, but you already saw how to use the ``parallel`` and
+      ``kernels`` directives in the code block above! You should nonetheless inspect the code
+      under subdirectories ``c/`` or ``F90/`` and think about where the ``parallel`` or ``kernels``
+      directives should go and why. Try implementing it yourself and compile using the compile script
+      ``compile.sh`` (on Tetralith) or the Makefile by ``make`` (on Colab). Run it with ``sbatch job.sh``
+      (on Tetralith) or ``./sum`` (on Colab).
+   3. Now try the double-loop exercise. Inspect the code under ``c/`` or ``F90/`` and try to
+      implement OpenACC directives. Compile it by ``./compile.sh`` (Tetralith) or ``make`` (Colab)
+      and run by ``sbatch job.sh`` (Tetralith) or ``./doubleloop`` (Colab).
 
 .. keypoints::
 
