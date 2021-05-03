@@ -80,15 +80,11 @@ Otimizing data movement
 Data constructs: data clauses
 -----------------------------
 
--  ``present(var-list)``  **on entry/exit:** assume that memory is allocated and that data is present on the device
+- ``copy(var-list)`` **on entry:** if data is present on the device on entry, behave as   with the *present* clause, otherwise allocate memory on the device  and copy data from the host to the device.  **on exit:** copy data from the device to the host and deallocate memory on the device if it was allocated on entry
 
-- ``create(var-list)``  **on entry:** allocate memory on the device, unless it was already present,  **on exit:** deallocate memory on the device if it was allocated on entry
+- ``copyin(var-list)`` **on entry:** same as *copy* on entry, **on exit:** deallocate memory on the device if it was allocated on entry
 
-- ``copy(var-list)`` **on entry:** if data is present on the device on entry, behave as   with the ``present`` clause, otherwise allocate memory on the device  and copy data from the host to the device.  **on exit:** copy data from the device to the host and deallocate memory on the device if it was allocated on entry
-
-- ``copyin(var-list)`` **on entry:** same as ``copy`` on entry, **on exit:** deallocate memory on the device if it was allocated on entry
-
--  ``copyout(var-list)`` **on entry:** if data is present on the device on entry, behave as     with the ``present`` clause, otherwise allocate memory on the device **on exit:** same as ``copy`` on exit
+-  ``copyout(var-list)`` **on entry:** if data is present on the device on entry, behave as with the *present* clause, otherwise allocate memory on the device **on exit:** same as *copy* on exit
 
 -  ``present(var-list)``  **on entry/exit:** assume that memory is allocated and that data is present on the device
 

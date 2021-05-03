@@ -50,13 +50,8 @@ How can OpenACC port code to GPU?
 
 - OpenACC data model
 
-   -  If host memory is separate from accelerator device memory
-
-      -  host manages memory of the device
-      -  host copies data to/from the device
-
-   -  When memories are not separate, no copies are needed (difference
-      is transparent to the user)
+   -  host manages memory of the device
+   -  host copies data to/from the device
 
 - OpenACC execution model
 
@@ -140,7 +135,7 @@ Compute constructs: ``kernels``
    separate *parallel kernel*
 -  The *kernels* will be executed in a *sequential* order
 
-Compute constructs: ^^parallel``
+Compute constructs: ``parallel``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Define a region to be executed on the accelerator device
@@ -245,7 +240,7 @@ Example: ``PGI_ACC_TIME=1``
     23: compute region reached 1 time
         23: kernel launched 1 time
             grid: [800]  block: [128]
-            elapsed time(us): total=52 max=52 min=52 avg=52
+            elapsed time(us): total=41 max=41 min=41 avg=41
    Reduction sum: 1.2020569031119108
 
  $ cat slurm-13186514.out
@@ -260,7 +255,7 @@ Example: ``PGI_ACC_TIME=1``
     23: compute region reached 1 time
         23: kernel launched 1 time
             grid: [800]  block: [128]
-            elapsed time(us): total=51 max=51 min=51 avg=51
+            elapsed time(us): total=40 max=40 min=40 avg=40
  Reduction sum: 1.2020569031119108
 
 
