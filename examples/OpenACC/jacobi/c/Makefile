@@ -2,7 +2,7 @@ COMP=gcc
 
 ifeq ($(COMP),gcc)
 CC=gcc
-CCFLAGS=-g -O3 -fopenacc 
+CCFLAGS=-g -O3 -fopenacc -lm 
 RUN=
 endif
 
