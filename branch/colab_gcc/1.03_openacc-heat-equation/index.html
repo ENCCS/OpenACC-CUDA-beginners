@@ -1,0 +1,1150 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Introduction to OpenACC (cont.) &mdash; OpenACC/CUDA for beginners</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_lesson.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/togglebutton.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/minipres.js"></script>
+        <script src="../_static/tabs.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="Introduction to CUDA" href="../2.01_cuda-introduction/" />
+    <link rel="prev" title="Introduction to OpenACC" href="../1.02_openacc-introduction/" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../" class="icon icon-home"> OpenACC/CUDA for beginners
+          
+
+          
+            
+            <img src="../_static/ENCCS.jpg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1.01_gpu-introduction/">Introduction to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1.02_openacc-introduction/">Introduction to OpenACC</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction to OpenACC (cont.)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#otimizing-data-movement">Otimizing data movement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-constructs-data-clauses">Data constructs: data clauses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-specification">Data specification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default-data-environment-in-compute-constructs">Default data environment in compute constructs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unstructured-data-regions">Unstructured data regions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-directive-update">Data directive: update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-directive-declare">Data directive: declare</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-construct-example">Data construct: example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-construct-heat-equation">Data construct: Heat equation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optimize-loop-performance">Optimize Loop performance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#vectors-workers-and-gangs">Vectors, Workers, and Gangs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collapse-clause">Collapse Clause</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../2.01_cuda-introduction/">Introduction to CUDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.02_cuda-heat-equation/">Solving heat equation with CUDA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../setup/">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-reference/">Quick Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/">Instructor’s guide</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../">OpenACC/CUDA for beginners</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Introduction to OpenACC (cont.)</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/ENCCS/OpenACC-CUDA-beginners/blob/main/content/1.03_openacc-heat-equation.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="introduction-to-openacc-cont">
+<span id="openacc-heat-equation"></span><h1>Introduction to OpenACC (cont.)<a class="headerlink" href="#introduction-to-openacc-cont" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>The three key steps in porting to high performance accelerated code:</p>
+<ol class="arabic simple">
+<li><p>Analyze/Identify parallelism</p></li>
+<li><p>Express data movement and parallelism</p></li>
+<li><p>Optimize data movement and loop performance</p></li>
+<li><p>Go back to 1!</p></li>
+</ol>
+</li>
+</ul>
+<blockquote>
+<div><img alt="../_images/development-cycle.png" src="../_images/development-cycle.png" />
+</div></blockquote>
+<ul class="simple">
+<li><p><em>Analyze</em> your code to determine most likely places needing parallelization or optimization.</p></li>
+<li><p><em>Parallelize</em> your code by starting with the most time consuming parts and check for correctness.</p></li>
+<li><p><em>Optimize</em> your code to improve observed speed-up from parallelization.</p></li>
+</ul>
+<div class="section" id="otimizing-data-movement">
+<h2>Otimizing data movement<a class="headerlink" href="#otimizing-data-movement" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Minimize the data transfer between host and device</p></li>
+<li><p>Constructs and clauses for</p>
+<ul>
+<li><p>defining the variables on the device</p></li>
+<li><p>transferring data to/from the device</p></li>
+</ul>
+</li>
+<li><p>All variables used inside the <code class="docutils literal notranslate"><span class="pre">parallel</span></code> or <code class="docutils literal notranslate"><span class="pre">kernels</span></code> region will
+be treated as <em>implicit</em> variables if they are not present in any
+data clauses, i.e. copying to and from to the device is automatically
+performed</p></li>
+</ul>
+<blockquote>
+<div><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// #pragma acc data copy(vecA,vecB,vecC)</span>
+<span class="cp">#pragma acc kernels</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">NX</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">vecC</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vecA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">vecB</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pgcc -g -O3 -acc -Minfo<span class="o">=</span>accel -ta<span class="o">=</span>nvidia sum.c -o sum
+<span class="m">23</span>, Generating implicit copyout<span class="o">(</span>vecC<span class="o">[</span>:<span class="o">])</span> <span class="o">[</span><span class="k">if</span> not already present<span class="o">]</span>
+    Generating implicit copyin<span class="o">(</span>vecB<span class="o">[</span>:<span class="o">]</span>,vecA<span class="o">[</span>:<span class="o">])</span> <span class="o">[</span><span class="k">if</span> not already present<span class="o">]</span>
+
+$ <span class="nb">export</span> <span class="nv">PGI_ACC_TIME</span><span class="o">=</span><span class="m">1</span>
+$ ./sum
+time<span class="o">(</span>us<span class="o">)</span>: <span class="m">247</span>
+<span class="m">23</span>: data region reached <span class="m">2</span> <span class="nb">times</span>
+    <span class="m">23</span>: data copyin transfers: <span class="m">2</span>
+         device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">174</span> <span class="nv">max</span><span class="o">=</span><span class="m">99</span> <span class="nv">min</span><span class="o">=</span><span class="m">75</span> <span class="nv">avg</span><span class="o">=</span><span class="m">87</span>
+    <span class="m">25</span>: data copyout transfers: <span class="m">1</span>
+         device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">73</span> <span class="nv">max</span><span class="o">=</span><span class="m">73</span> <span class="nv">min</span><span class="o">=</span><span class="m">73</span> <span class="nv">avg</span><span class="o">=</span><span class="m">73</span>
+
+<span class="c1">#### previous with explicit data copy</span>
+  Accelerator Kernel Timing data
+   main  NVIDIA  <span class="nv">devicenum</span><span class="o">=</span><span class="m">0</span>
+time<span class="o">(</span>us<span class="o">)</span>: <span class="m">451</span>
+<span class="m">21</span>: data region reached <span class="m">2</span> <span class="nb">times</span>
+    <span class="m">21</span>: data copyin transfers: <span class="m">3</span>
+         device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">245</span> <span class="nv">max</span><span class="o">=</span><span class="m">100</span> <span class="nv">min</span><span class="o">=</span><span class="m">71</span> <span class="nv">avg</span><span class="o">=</span><span class="m">81</span>
+    <span class="m">29</span>: data copyout transfers: <span class="m">3</span>
+         device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">206</span> <span class="nv">max</span><span class="o">=</span><span class="m">72</span> <span class="nv">min</span><span class="o">=</span><span class="m">67</span> <span class="nv">avg</span><span class="o">=</span><span class="m">68</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li><p>Typically data on the device has the same lifetime as the OpenACC
+construct (<code class="docutils literal notranslate"><span class="pre">parallel</span></code>, <code class="docutils literal notranslate"><span class="pre">kernels</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>) it is declared in</p></li>
+<li><p>It is possible to declare and refer to data residing statically on
+the device until deallocation takes place</p></li>
+</ul>
+</div>
+<div class="section" id="data-constructs-data-clauses">
+<h2>Data constructs: data clauses<a class="headerlink" href="#data-constructs-data-clauses" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">copy(var-list)</span></code> <strong>on entry:</strong> if data is present on the device on entry, behave as   with the <em>present</em> clause, otherwise allocate memory on the device  and copy data from the host to the device.  <strong>on exit:</strong> copy data from the device to the host and deallocate memory on the device if it was allocated on entry</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">copyin(var-list)</span></code> <strong>on entry:</strong> same as <em>copy</em> on entry, <strong>on exit:</strong> deallocate memory on the device if it was allocated on entry</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">copyout(var-list)</span></code> <strong>on entry:</strong> if data is present on the device on entry, behave as with the <em>present</em> clause, otherwise allocate memory on the device <strong>on exit:</strong> same as <em>copy</em> on exit</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">present(var-list)</span></code>  <strong>on entry/exit:</strong> assume that memory is allocated and that data is present on the device</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create(var-list)</span></code>  <strong>on entry:</strong> allocate memory on the device, unless it was already present,  <strong>on exit:</strong> deallocate memory on the device if it was allocated on entry</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reduction(operator:var-list)</span></code> the operator can be <code class="docutils literal notranslate"><span class="pre">+,-,*,max,min</span></code>, Performs reduction on the (scalar) variables in list</p></li>
+</ul>
+<div class="section" id="data-specification">
+<h3>Data specification<a class="headerlink" href="#data-specification" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Data clauses specify functionality for different variables</p></li>
+<li><p>Overlapping data specifications are not allowed</p></li>
+<li><p>For array data, <em>array ranges</em> can be specified</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">arr[start_index:length]</span></code>, for instance <code class="docutils literal notranslate"><span class="pre">vec[0:n]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">arr(start_index:end_index)</span></code>, for instance <code class="docutils literal notranslate"><span class="pre">vec(1:n)</span></code></p></li>
+</ul>
+</li>
+<li><p>Note: array data <strong>must</strong> be <em>contiguous</em> in memory (vectors,
+multidimensional arrays etc.)</p></li>
+</ul>
+</div>
+<div class="section" id="default-data-environment-in-compute-constructs">
+<h3>Default data environment in compute constructs<a class="headerlink" href="#default-data-environment-in-compute-constructs" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>All variables used inside the <code class="docutils literal notranslate"><span class="pre">parallel</span></code> or <code class="docutils literal notranslate"><span class="pre">kernels</span></code> region will
+be treated as <em>implicit</em> variables if they are not present in any
+data clauses, i.e. copying to and from the device is automatically
+performed</p></li>
+<li><p>Implicit <em>array</em> variables are treated as having the <code class="docutils literal notranslate"><span class="pre">copy</span></code> clause
+in both cases</p></li>
+<li><p>Implicit <em>scalar</em> variables are treated as having the</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">copy</span></code> clause in <code class="docutils literal notranslate"><span class="pre">kernels</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">firstprivate</span></code> clause in <code class="docutils literal notranslate"><span class="pre">parallel</span></code></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="unstructured-data-regions">
+<h3>Unstructured data regions<a class="headerlink" href="#unstructured-data-regions" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Unstructured data regions enable one to handle cases where allocation
+and freeing is done in a different scope</p></li>
+<li><p>Useful for e.g. C++ classes, Fortran modules</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enter</span> <span class="pre">data</span></code> defines the start of an unstructured data region</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">enter</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">enter</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>[clauses] can be <code class="docutils literal notranslate"><span class="pre">create(var-list)</span></code> to allocate memory on the device or <code class="docutils literal notranslate"><span class="pre">copyin(var-list)</span></code> to allocate memory on the device and copy data from the host to the device</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exit</span> <span class="pre">data</span></code> defines the end of an unstructured data region</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">exit</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">exit</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>[clauses] can be <code class="docutils literal notranslate"><span class="pre">delete(var-list)</span></code> to deallocate memory on the device or <code class="docutils literal notranslate"><span class="pre">copyout(var-list)</span></code> to  Deallocate memory on the device and copy data from the device to  the host</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="data-directive-update">
+<h3>Data directive: update<a class="headerlink" href="#data-directive-update" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Define variables to be updated within a data region between host and
+device memory</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">update</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">update</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+<li><p>Data transfer direction controlled by <code class="docutils literal notranslate"><span class="pre">host(var-list)</span></code> or
+<code class="docutils literal notranslate"><span class="pre">device(var-list)</span></code> clauses</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">self</span></code> (<code class="docutils literal notranslate"><span class="pre">host</span></code>) clause updates variables from device to host</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">device</span></code> clause updates variables from host to device</p></li>
+</ul>
+</li>
+</ul>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code> is a single line executable directive</p></li>
+<li><p>Useful for producing snapshots of the device variables on the host or
+for updating variables on the device</p>
+<ul>
+<li><p>Pass variables to host for visualization</p></li>
+<li><p>Communication with other devices on other computing nodes</p></li>
+</ul>
+</li>
+<li><p>Often used in conjunction with</p>
+<ul>
+<li><p>Asynchronous execution of OpenACC constructs</p></li>
+<li><p>Unstructured data regions</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="data-directive-declare">
+<h3>Data directive: declare<a class="headerlink" href="#data-directive-declare" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Makes a variable resident in accelerator memory</p></li>
+<li><p>Added at the declaration of a variable</p></li>
+<li><p>Data life-time on device is the implicit life-time of the variable</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">declare</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">declare</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+<li><p>Supports usual data clauses, and additionally</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">device_resident</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">link</span></code></p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="data-construct-example">
+<h2>Data construct: example<a class="headerlink" href="#data-construct-example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">int</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">;</span>
+<span class="cp">#pragma acc data copy(a[0:N])</span>
+<span class="p">{</span>
+ <span class="cp">#pragma acc parallel loop present(a)</span>
+ <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">N</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+     <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">...</span>
+<span class="cp">#pragma acc data copyout(a[0:N]), copyin(b[0:N])</span>
+<span class="p">{</span>
+ <span class="cp">#pragma acc parallel loop present(a,b)</span>
+ <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">N</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+     <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">...</span>
+<span class="cp">#pragma acc data copyout(a[0:N]), create(b[0:N])</span>
+<span class="p">{</span>
+ <span class="cp">#pragma acc parallel loop</span>
+ <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">N</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+     <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">;</span>
+
+ <span class="cp">#pragma acc parallel loop present(a,b)</span>
+ <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">N</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+     <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition-heat-equation typealong toggle-shown dropdown admonition">
+<p class="admonition-title">Heat equation</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">cpu</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">OpenACC parallel loop</button><button aria-controls="panel-0-0-2" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-2" name="0-2" role="tab" tabindex="-1">OpenACC loop collapse</button><button aria-controls="panel-0-0-3" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-3" name="0-3" role="tab" tabindex="-1">OpenACC data create</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+
+<span class="cm">/* Convert 2D index layout to unrolled 1D layout</span>
+<span class="cm"> *</span>
+<span class="cm"> * \param[in] i      Row index</span>
+<span class="cm"> * \param[in] j      Column index</span>
+<span class="cm"> * \param[in] width  The width of the area</span>
+<span class="cm"> * </span>
+<span class="cm"> * \returns An index in the unrolled 1D array.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span> <span class="nf">getIndex</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">j</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">width</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">i</span><span class="o">*</span><span class="n">width</span> <span class="o">+</span> <span class="n">j</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">nx</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Width of the area</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">ny</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Height of the area</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span>     <span class="c1">// Diffusion constant</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Horizontal grid spacing </span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Vertical grid spacing</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx2</span> <span class="o">=</span> <span class="n">dx</span><span class="o">*</span><span class="n">dx</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy2</span> <span class="o">=</span> <span class="n">dy</span><span class="o">*</span><span class="n">dy</span><span class="p">;</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dt</span> <span class="o">=</span> <span class="n">dx2</span> <span class="o">*</span> <span class="n">dy2</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">dx2</span> <span class="o">+</span> <span class="n">dy2</span><span class="p">));</span> <span class="c1">// Largest stable time step</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">numSteps</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>                             <span class="c1">// Number of time steps</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">outputEvery</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>                          <span class="c1">// How frequently to write output image</span>
+
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">;</span>
+
+    <span class="c1">// Allocate two sets of data for current and next timesteps</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Un</span>   <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Unp1</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Initializing the data with a pattern of disk of radius of 1/6 of the width</span>
+    <span class="kt">float</span> <span class="n">radius2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+            <span class="c1">// Distance of point i, j from the origin</span>
+            <span class="kt">float</span> <span class="n">ds2</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ds2</span> <span class="o">&lt;</span> <span class="n">radius2</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">65.0</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="k">else</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Fill in the data on the next step to ensure that the boundaries are identical.</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">Unp1</span><span class="p">,</span> <span class="n">Un</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Main loop</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">numSteps</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Going through the entire area</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="mi">-1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="mi">-1</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+                <span class="kt">float</span> <span class="n">uij</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="kt">float</span> <span class="n">uim1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="mi">-1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijm1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="mi">-1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uip1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijp1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+
+                <span class="c1">// Explicit scheme</span>
+                <span class="n">Unp1</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">uij</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span> <span class="p">(</span><span class="n">uim1j</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uip1j</span><span class="p">)</span><span class="o">/</span><span class="n">dx2</span> <span class="o">+</span> <span class="p">(</span><span class="n">uijm1</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uijp1</span><span class="p">)</span><span class="o">/</span><span class="n">dy2</span> <span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="c1">// Write the output if needed</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">%</span> <span class="n">outputEvery</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">float</span> <span class="n">maxtemp</span> <span class="o">=</span> <span class="mf">-1.</span><span class="n">e</span><span class="mi">-5</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">nx</span><span class="p">);</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">maxtemp</span> <span class="o">&lt;</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="p">{</span>
+                  <span class="n">maxtemp</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="p">}</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Maximum temperture is %f at %d steps </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">maxtemp</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="c1">// Copy the pointers for the next timestep</span>
+        <span class="n">memcpy</span><span class="p">(</span><span class="n">Un</span><span class="p">,</span> <span class="n">Unp1</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Release the memory</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Un</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Unp1</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+
+<span class="cm">/* Convert 2D index layout to unrolled 1D layout</span>
+<span class="cm"> *</span>
+<span class="cm"> * \param[in] i      Row index</span>
+<span class="cm"> * \param[in] j      Column index</span>
+<span class="cm"> * \param[in] width  The width of the area</span>
+<span class="cm"> * </span>
+<span class="cm"> * \returns An index in the unrolled 1D array.</span>
+<span class="cm"> */</span>
+<span class="cp">#pragma acc routine seq</span>
+<span class="kt">int</span> <span class="nf">getIndex</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">j</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">width</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">i</span><span class="o">*</span><span class="n">width</span> <span class="o">+</span> <span class="n">j</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">nx</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Width of the area</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">ny</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Height of the area</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span>     <span class="c1">// Diffusion constant</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Horizontal grid spacing </span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Vertical grid spacing</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx2</span> <span class="o">=</span> <span class="n">dx</span><span class="o">*</span><span class="n">dx</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy2</span> <span class="o">=</span> <span class="n">dy</span><span class="o">*</span><span class="n">dy</span><span class="p">;</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dt</span> <span class="o">=</span> <span class="n">dx2</span> <span class="o">*</span> <span class="n">dy2</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">dx2</span> <span class="o">+</span> <span class="n">dy2</span><span class="p">));</span> <span class="c1">// Largest stable time step</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">numSteps</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>                             <span class="c1">// Number of time steps</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">outputEvery</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>                          <span class="c1">// How frequently to write output image</span>
+
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">;</span>
+
+    <span class="c1">// Allocate two sets of data for current and next timesteps</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Un</span>   <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Unp1</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Initializing the data with a pattern of disk of radius of 1/6 of the width</span>
+    <span class="kt">float</span> <span class="n">radius2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+            <span class="c1">// Distance of point i, j from the origin</span>
+            <span class="kt">float</span> <span class="n">ds2</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ds2</span> <span class="o">&lt;</span> <span class="n">radius2</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">65.0</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="k">else</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Fill in the data on the next step to ensure that the boundaries are identical.</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">Unp1</span><span class="p">,</span> <span class="n">Un</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Main loop</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">numSteps</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Going through the entire area</span>
+	
+<span class="cp">#pragma acc parallel loop independent copyin(Un) copyout(Unp1)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="mi">-1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+<span class="cp">#pragma acc loop		</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="mi">-1</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+                <span class="kt">float</span> <span class="n">uij</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="kt">float</span> <span class="n">uim1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="mi">-1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijm1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="mi">-1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uip1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijp1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+
+                <span class="c1">// Explicit scheme</span>
+                <span class="n">Unp1</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">uij</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span> <span class="p">(</span><span class="n">uim1j</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uip1j</span><span class="p">)</span><span class="o">/</span><span class="n">dx2</span> <span class="o">+</span> <span class="p">(</span><span class="n">uijm1</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uijp1</span><span class="p">)</span><span class="o">/</span><span class="n">dy2</span> <span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="c1">// Write the output if needed</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">%</span> <span class="n">outputEvery</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">float</span> <span class="n">maxtemp</span> <span class="o">=</span> <span class="mf">-1.</span><span class="n">e</span><span class="mi">-5</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">nx</span><span class="p">);</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">maxtemp</span> <span class="o">&lt;</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="p">{</span>
+                  <span class="n">maxtemp</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="p">}</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Maximum temperture is %f at %d steps </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">maxtemp</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="c1">// Copy the pointers for the next timestep</span>
+	<span class="c1">//memcpy(Un, Unp1, numElements*sizeof(float));</span>
+<span class="cp">#pragma acc parallel loop collapse(2)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+	    <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">nx</span><span class="p">);</span>
+            <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">Unp1</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+	  <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+
+    <span class="c1">// Release the memory</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Un</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Unp1</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-2" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-2" name="0-2" role="tabpanel" tabindex="0"><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+
+<span class="cm">/* Convert 2D index layout to unrolled 1D layout</span>
+<span class="cm"> *</span>
+<span class="cm"> * \param[in] i      Row index</span>
+<span class="cm"> * \param[in] j      Column index</span>
+<span class="cm"> * \param[in] width  The width of the area</span>
+<span class="cm"> * </span>
+<span class="cm"> * \returns An index in the unrolled 1D array.</span>
+<span class="cm"> */</span>
+<span class="cp">#pragma acc routine seq</span>
+<span class="kt">int</span> <span class="nf">getIndex</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">j</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">width</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">i</span><span class="o">*</span><span class="n">width</span> <span class="o">+</span> <span class="n">j</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">nx</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Width of the area</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">ny</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Height of the area</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span>     <span class="c1">// Diffusion constant</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Horizontal grid spacing </span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Vertical grid spacing</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx2</span> <span class="o">=</span> <span class="n">dx</span><span class="o">*</span><span class="n">dx</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy2</span> <span class="o">=</span> <span class="n">dy</span><span class="o">*</span><span class="n">dy</span><span class="p">;</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dt</span> <span class="o">=</span> <span class="n">dx2</span> <span class="o">*</span> <span class="n">dy2</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">dx2</span> <span class="o">+</span> <span class="n">dy2</span><span class="p">));</span> <span class="c1">// Largest stable time step</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">numSteps</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>                             <span class="c1">// Number of time steps</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">outputEvery</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>                          <span class="c1">// How frequently to write output image</span>
+
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">;</span>
+
+    <span class="c1">// Allocate two sets of data for current and next timesteps</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Un</span>   <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Unp1</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Initializing the data with a pattern of disk of radius of 1/6 of the width</span>
+    <span class="kt">float</span> <span class="n">radius2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+            <span class="c1">// Distance of point i, j from the origin</span>
+            <span class="kt">float</span> <span class="n">ds2</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ds2</span> <span class="o">&lt;</span> <span class="n">radius2</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">65.0</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="k">else</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Fill in the data on the next step to ensure that the boundaries are identical.</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">Unp1</span><span class="p">,</span> <span class="n">Un</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Main loop</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">numSteps</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Going through the entire area</span>
+	
+<span class="cp">#pragma acc parallel loop collapse(2) copyin(Un) copyout(Unp1)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="mi">-1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="mi">-1</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+                <span class="kt">float</span> <span class="n">uij</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="kt">float</span> <span class="n">uim1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="mi">-1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijm1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="mi">-1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uip1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijp1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+
+                <span class="c1">// Explicit scheme</span>
+                <span class="n">Unp1</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">uij</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span> <span class="p">(</span><span class="n">uim1j</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uip1j</span><span class="p">)</span><span class="o">/</span><span class="n">dx2</span> <span class="o">+</span> <span class="p">(</span><span class="n">uijm1</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uijp1</span><span class="p">)</span><span class="o">/</span><span class="n">dy2</span> <span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="c1">// Write the output if needed</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">%</span> <span class="n">outputEvery</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">float</span> <span class="n">maxtemp</span> <span class="o">=</span> <span class="mf">-1.</span><span class="n">e</span><span class="mi">-5</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">nx</span><span class="p">);</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">maxtemp</span> <span class="o">&lt;</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="p">{</span>
+                  <span class="n">maxtemp</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="p">}</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Maximum temperture is %f at %d steps </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">maxtemp</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="c1">// Copy the pointers for the next timestep</span>
+	<span class="c1">//memcpy(Un, Unp1, numElements*sizeof(float));</span>
+<span class="cp">#pragma acc parallel loop collapse(2)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+	    <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">nx</span><span class="p">);</span>
+            <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">Unp1</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+	  <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+
+    <span class="c1">// Release the memory</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Un</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Unp1</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-3" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-3" name="0-3" role="tabpanel" tabindex="0"><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+
+<span class="cm">/* Convert 2D index layout to unrolled 1D layout</span>
+<span class="cm"> *</span>
+<span class="cm"> * \param[in] i      Row index</span>
+<span class="cm"> * \param[in] j      Column index</span>
+<span class="cm"> * \param[in] width  The width of the area</span>
+<span class="cm"> * </span>
+<span class="cm"> * \returns An index in the unrolled 1D array.</span>
+<span class="cm"> */</span>
+<span class="cp">#pragma acc routine seq</span>
+<span class="kt">int</span> <span class="nf">getIndex</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">j</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">width</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">i</span><span class="o">*</span><span class="n">width</span> <span class="o">+</span> <span class="n">j</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">nx</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Width of the area</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">ny</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>   <span class="c1">// Height of the area</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span>     <span class="c1">// Diffusion constant</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Horizontal grid spacing </span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>   <span class="c1">// Vertical grid spacing</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dx2</span> <span class="o">=</span> <span class="n">dx</span><span class="o">*</span><span class="n">dx</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dy2</span> <span class="o">=</span> <span class="n">dy</span><span class="o">*</span><span class="n">dy</span><span class="p">;</span>
+
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">dt</span> <span class="o">=</span> <span class="n">dx2</span> <span class="o">*</span> <span class="n">dy2</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">dx2</span> <span class="o">+</span> <span class="n">dy2</span><span class="p">));</span> <span class="c1">// Largest stable time step</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">numSteps</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>                             <span class="c1">// Number of time steps</span>
+    <span class="k">const</span> <span class="kt">int</span> <span class="n">outputEvery</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>                          <span class="c1">// How frequently to write output image</span>
+
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">;</span>
+
+    <span class="c1">// Allocate two sets of data for current and next timesteps</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Un</span>   <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">Unp1</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Initializing the data with a pattern of disk of radius of 1/6 of the width</span>
+    <span class="kt">float</span> <span class="n">radius2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mf">6.0</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+            <span class="c1">// Distance of point i, j from the origin</span>
+            <span class="kt">float</span> <span class="n">ds2</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ds2</span> <span class="o">&lt;</span> <span class="n">radius2</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">65.0</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="k">else</span>
+            <span class="p">{</span>
+                <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Fill in the data on the next step to ensure that the boundaries are identical.</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">Unp1</span><span class="p">,</span> <span class="n">Un</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="c1">// Main loop</span>
+<span class="cp">#pragma acc data copyin(Un) create(Unp1)</span>
+<span class="p">{</span>    
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">numSteps</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Going through the entire area</span>
+	
+<span class="cp">#pragma acc parallel loop collapse(2) present(Un,Unp1)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="mi">-1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="mi">-1</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">);</span>
+                <span class="kt">float</span> <span class="n">uij</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="kt">float</span> <span class="n">uim1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="mi">-1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijm1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="mi">-1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uip1j</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+                <span class="kt">float</span> <span class="n">uijp1</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">nx</span><span class="p">)];</span>
+
+                <span class="c1">// Explicit scheme</span>
+                <span class="n">Unp1</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">uij</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span> <span class="p">(</span><span class="n">uim1j</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uip1j</span><span class="p">)</span><span class="o">/</span><span class="n">dx2</span> <span class="o">+</span> <span class="p">(</span><span class="n">uijm1</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">uijp1</span><span class="p">)</span><span class="o">/</span><span class="n">dy2</span> <span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="c1">// Write the output if needed</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">%</span> <span class="n">outputEvery</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="kt">float</span> <span class="n">maxtemp</span> <span class="o">=</span> <span class="mf">-1.</span><span class="n">e</span><span class="mi">-5</span><span class="p">;</span>
+<span class="cp">#pragma acc update host(Un)	    </span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">const</span> <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">nx</span><span class="p">);</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">maxtemp</span> <span class="o">&lt;</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="p">{</span>
+                  <span class="n">maxtemp</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+                <span class="p">}</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Maximum temperture is %f at %d steps </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">maxtemp</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="c1">// Copy the pointers for the next timestep</span>
+        <span class="c1">//memcpy(Un, Unp1, numElements*sizeof(float));</span>
+<span class="cp">#pragma acc parallel loop collapse(2)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+	    <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">getIndex</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">nx</span><span class="p">);</span>
+            <span class="n">Un</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">Unp1</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+	  <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+ <span class="p">}</span>
+    <span class="c1">// Release the memory</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Un</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">Unp1</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></div>
+</div>
+</div>
+<div class="section" id="data-construct-heat-equation">
+<h2>Data construct: Heat equation<a class="headerlink" href="#data-construct-heat-equation" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">numSteps</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span><span class="p">)</span>
+<span class="p">{</span>
+   <span class="c1">/// Going through the entire area</span>
+  <span class="cp">#pragma acc parallel loop collapse(2) copyin(Un[0:nx][0:ny]) copyout(Unp1[0:nx][0:ny])</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="mi">-1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="mi">-1</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+        <span class="p">{</span>
+           <span class="kt">float</span> <span class="n">uij</span> <span class="o">=</span> <span class="n">Un</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">];</span>
+           <span class="c1">// Explicit scheme</span>
+           <span class="n">Unp1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">uij</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span> <span class="p">(</span><span class="n">Un</span><span class="p">[</span><span class="n">i</span><span class="mi">-1</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">Un</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="n">dx2</span>
+                                       <span class="o">+</span> <span class="p">(</span><span class="n">Un</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="mi">-1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">uij</span> <span class="o">+</span> <span class="n">Un</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="n">dy2</span> <span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>  time<span class="o">(</span>us<span class="o">)</span>: <span class="m">16</span>,877
+<span class="m">93</span>: data region reached <span class="m">1000</span> <span class="nb">times</span>
+ <span class="m">42</span>: kernel launched <span class="m">1000</span> <span class="nb">times</span>
+     grid: <span class="o">[</span><span class="m">2</span><span class="o">]</span>  block: <span class="o">[</span><span class="m">128</span><span class="o">]</span>
+     elapsed time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">12</span>,437 <span class="nv">max</span><span class="o">=</span><span class="m">50</span> <span class="nv">min</span><span class="o">=</span><span class="m">11</span> <span class="nv">avg</span><span class="o">=</span><span class="m">12</span>
+ <span class="m">93</span>: data copyin transfers: <span class="m">500</span>
+      device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">8</span>,572 <span class="nv">max</span><span class="o">=</span><span class="m">45</span> <span class="nv">min</span><span class="o">=</span><span class="m">16</span> <span class="nv">avg</span><span class="o">=</span><span class="m">17</span>
+ <span class="m">107</span>: data copyout transfers: <span class="m">500</span>
+      device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">8</span>,305 <span class="nv">max</span><span class="o">=</span><span class="m">23</span> <span class="nv">min</span><span class="o">=</span><span class="m">16</span> <span class="nv">avg</span><span class="o">=</span><span class="m">16</span>
+</pre></div>
+</div>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span> <span class="cp">#pragma acc data copyin(Un[0:nx][0:ny]) create(Unp1[0:nx][0:ny])</span>
+<span class="p">{</span>
+   <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">numSteps</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="c1">// Going through the entire area</span>
+       <span class="cp">#pragma acc parallel loop collapse(2)</span>
+       <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="mi">-1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+           <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="mi">-1</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+             <span class="n">Unp1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">...</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">%</span> <span class="n">outputEvery</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>  <span class="p">{</span>
+  <span class="cp">#pragma acc update host(Un[0:nx][0:ny])</span>
+           <span class="n">save_png</span><span class="p">(</span><span class="n">Un</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">);</span>
+   <span class="p">}</span>
+  <span class="cp">#pragma acc parallel loop collapse(2)</span>
+             <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+       <span class="p">{</span>
+         <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ny</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+           <span class="n">Un</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">Unp1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">];</span>
+       <span class="p">}</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>        time<span class="o">(</span>us<span class="o">)</span>: <span class="m">151</span>
+<span class="m">93</span>: data region reached <span class="m">2</span> <span class="nb">times</span>
+    <span class="m">42</span>: kernel launched <span class="m">2</span> <span class="nb">times</span>
+        grid: <span class="o">[</span><span class="m">2</span><span class="o">]</span>  block: <span class="o">[</span><span class="m">128</span><span class="o">]</span>
+        elapsed time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">72</span> <span class="nv">max</span><span class="o">=</span><span class="m">49</span> <span class="nv">min</span><span class="o">=</span><span class="m">23</span> <span class="nv">avg</span><span class="o">=</span><span class="m">36</span>
+    <span class="m">93</span>: data copyin transfers: <span class="m">1</span>
+         device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">45</span> <span class="nv">max</span><span class="o">=</span><span class="m">45</span> <span class="nv">min</span><span class="o">=</span><span class="m">45</span> <span class="nv">avg</span><span class="o">=</span><span class="m">45</span>
+<span class="m">115</span>: update directive reached <span class="m">5</span> <span class="nb">times</span>
+    <span class="m">115</span>: data copyout transfers: <span class="m">5</span>
+         device time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">106</span> <span class="nv">max</span><span class="o">=</span><span class="m">22</span> <span class="nv">min</span><span class="o">=</span><span class="m">20</span> <span class="nv">avg</span><span class="o">=</span><span class="m">21</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="optimize-loop-performance">
+<h2>Optimize Loop performance<a class="headerlink" href="#optimize-loop-performance" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The compiler is usually pretty good at choosing how to break up loop iterations to run well on parallel accelerators.</p></li>
+<li><p>Sometimes we can obtain a little more performance by guiding the compiler to make specific choices.</p></li>
+</ul>
+<div class="section" id="vectors-workers-and-gangs">
+<h3>Vectors, Workers, and Gangs<a class="headerlink" href="#vectors-workers-and-gangs" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>OpenACC has three levels of parallelism
+- <strong>Vector</strong> threads work in SIMT (SIMD) fashion
+- <strong>Workers</strong> compute a vector
+- <strong>Gangs</strong> have one or more workers that share resources, such as streaming multiprocessor - Multiple gangs work independently</p></li>
+<li><p>By default, when programming for a GPU, gang and vector parallelism is automatically applied.</p></li>
+</ul>
+<img alt="../_images/gang_worker_vector.png" src="../_images/gang_worker_vector.png" />
+<p>This image represents a single gang. When parallelizing our for loops, the loop iterations will be broken up evenly among a number of gangs. Each gang will contain a number of threads. These threads are organized into blocks. A worker is a row of threads. In the above graphic, there are 3 workers, which means that there are 3 rows of threads. The vector refers to how long each row is. So in the above graphic, the vector is 8, because each row is 8 threads long.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#pragma acc parallel num_gangs( 2 ) num_workers( 4 ) vector_length( 32 )</span>
+<span class="p">{</span>
+   <span class="cp">#pragma acc loop gang worker</span>
+   <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="cp">#pragma acc loop vector</span>
+       <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">M</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+       <span class="p">{</span>
+           <span class="o">&lt;</span> <span class="n">loop</span> <span class="n">code</span> <span class="o">&gt;</span>
+       <span class="p">}</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Avoid Wasting Threads, when parallelizing small arrays, you have to be careful that the number of threads within your vector is not larger than the number of loop iterations.</p></li>
+</ul>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#pragma acc kernels loop gang</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000000000</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="p">{</span>
+   <span class="cp">#pragma acc loop vector(256)</span>
+   <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="o">&lt;</span> <span class="n">loop</span> <span class="n">code</span> <span class="o">&gt;</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">...</span>
+
+<span class="cp">#pragma acc kernels loop gang worker(8)</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000000000</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="p">{</span>
+   <span class="cp">#pragma acc loop vector(32)</span>
+   <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="o">&lt;</span> <span class="n">loop</span> <span class="n">code</span> <span class="o">&gt;</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The Rule of 32 (Warps): The general rule of thumb for programming for NVIDIA GPUs is to always ensure that your vector length is a multiple of 32 (which means 32, 64, 96, 128, … 512, … 1024… etc.). This is because NVIDIA GPUs are optimized to use warps. Warps are groups of 32 threads that are executing the same computer instruction.</p></li>
+</ul>
+</div>
+<div class="section" id="collapse-clause">
+<h3>Collapse Clause<a class="headerlink" href="#collapse-clause" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The collapse clause allows us to transform a multi-dimensional loop nest into a single-dimensional loop. This process is helpful for increasing the overall length (which usually increases parallelism) of our loops, and will often help with memory locality.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#pragma acc parallel loop</span>
+      <span class="k">for</span> <span class="o">(</span>int <span class="nv">i</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span> i &lt; nx-1<span class="p">;</span> i++<span class="o">)</span>
+      <span class="o">{</span>
+<span class="c1">#pragma acc loop</span>
+          <span class="k">for</span> <span class="o">(</span>int <span class="nv">j</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span> j &lt; ny-1<span class="p">;</span> j++<span class="o">)</span>
+          <span class="o">{</span>
+             Unp1<span class="o">[</span>i<span class="o">][</span>j<span class="o">]</span> <span class="o">=</span> ...
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pgcc ... heat_equation_openacc_1.c
+       <span class="m">97</span>, <span class="c1">#pragma acc loop gang /* blockIdx.x */</span>
+      <span class="m">100</span>, <span class="c1">#pragma acc loop vector(128) /* threadIdx.x */</span>
+
+$ <span class="nv">PGI_ACC_TIME</span><span class="o">=</span><span class="m">1</span> ./heat
+  <span class="m">93</span>: compute region reached <span class="m">500</span> <span class="nb">times</span>
+      <span class="m">93</span>: kernel launched <span class="m">500</span> <span class="nb">times</span>
+          grid: <span class="o">[</span><span class="m">198</span><span class="o">]</span>  block: <span class="o">[</span><span class="m">128</span><span class="o">]</span>
+          elapsed time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">23</span>,929 <span class="nv">max</span><span class="o">=</span><span class="m">74</span> <span class="nv">min</span><span class="o">=</span><span class="m">40</span> <span class="nv">avg</span><span class="o">=</span><span class="m">47</span>
+
+<span class="c1">#pragma acc parallel loop collapse(2)</span>
+      <span class="k">for</span> <span class="o">(</span>int <span class="nv">i</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span> i &lt; nx-1<span class="p">;</span> i++<span class="o">)</span>
+      <span class="o">{</span>
+          <span class="k">for</span> <span class="o">(</span>int <span class="nv">j</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span> j &lt; ny-1<span class="p">;</span> j++<span class="o">)</span>
+          <span class="o">{</span>
+             Unp1<span class="o">[</span>i<span class="o">][</span>j<span class="o">]</span> <span class="o">=</span> ...
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pgcc ... heat_equation_openacc_2.c
+       <span class="m">97</span>, <span class="c1">#pragma acc loop gang, vector(128) collapse(2) /* blockIdx.x threadIdx.x */</span>
+       <span class="m">99</span>,   /* blockIdx.x threadIdx.x collapsed */
+
+$ <span class="nv">PGI_ACC_TIME</span><span class="o">=</span><span class="m">1</span> ./heat
+  <span class="m">93</span>: compute region reached <span class="m">500</span> <span class="nb">times</span>
+      <span class="m">93</span>: kernel launched <span class="m">500</span> <span class="nb">times</span>
+          grid: <span class="o">[</span><span class="m">307</span><span class="o">]</span>  block: <span class="o">[</span><span class="m">128</span><span class="o">]</span>
+          elapsed time<span class="o">(</span>us<span class="o">)</span>: <span class="nv">total</span><span class="o">=</span><span class="m">22</span>,642 <span class="nv">max</span><span class="o">=</span><span class="m">63</span> <span class="nv">min</span><span class="o">=</span><span class="m">38</span> <span class="nv">avg</span><span class="o">=</span><span class="m">45</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Optimizing data movement</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>Data directive</p></li>
+<li><p>Enter data &amp; exit data</p></li>
+<li><p>Unstructured data region</p></li>
+<li><p>Update directive</p></li>
+<li><p>Declare directive</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>Optimizing loop performance</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>loop gang worker vector</p></li>
+<li><p>collapse</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../2.01_cuda-introduction/" class="btn btn-neutral float-right" title="Introduction to CUDA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../1.02_openacc-introduction/" class="btn btn-neutral float-left" title="Introduction to OpenACC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, EuroCC National Competence Centre Sweden.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

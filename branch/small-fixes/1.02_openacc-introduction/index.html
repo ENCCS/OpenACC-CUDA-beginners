@@ -1,0 +1,716 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Introduction to OpenACC &mdash; OpenACC/CUDA for beginners</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_lesson.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/togglebutton.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/minipres.js"></script>
+        <script src="../_static/tabs.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="Solving heat equation with OpenACC" href="../1.03_openacc-heat-equation/" />
+    <link rel="prev" title="Introduction to GPU" href="../1.01_gpu-introduction/" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../" class="icon icon-home"> OpenACC/CUDA for beginners
+          
+
+          
+            
+            <img src="../_static/ENCCS.jpg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1.01_gpu-introduction/">Introduction to GPU</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction to OpenACC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-openacc">What is OpenACC ?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-vs-cuda-hip">OpenACC vs. CUDA/HIP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-execution-model">OpenACC execution model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-execution-model-1">OpenACC execution model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-data-model">OpenACC data model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-directive-syntax">OpenACC directive syntax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compiling-an-openacc-program">Compiling an OpenACC program</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-conditional-compilation">OpenACC conditional compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-internal-control-variables">OpenACC internal control variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-api-functions">Runtime API functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-compute-constructs">OpenACC compute constructs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-levels-of-parallelism">OpenACC levels of parallelism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openacc-compute-constructs-1">OpenACC compute constructs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-constructs-kernels">Compute constructs: <code class="docutils literal notranslate"><span class="pre">kernels</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-kernels">Example: <code class="docutils literal notranslate"><span class="pre">kernels</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-constructs-parallel">Compute constructs: <cite>parallel</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#work-sharing-construct-loop">Work sharing construct: <cite>loop</cite></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-parallel">Example: <cite>parallel</cite></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#compiler-diagnostics">Compiler diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-minfo">Example: <code class="docutils literal notranslate"><span class="pre">-Minfo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-minfo-1">Example: <code class="docutils literal notranslate"><span class="pre">-Minfo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../1.03_openacc-heat-equation/">Solving heat equation with OpenACC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.01_cuda-introduction/">Introduction to CUDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.02_cuda-heat-equation/">Solving heat equation with CUDA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../setup/">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-reference/">Quick Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/">Instructor’s guide</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../">OpenACC/CUDA for beginners</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Introduction to OpenACC</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/ENCCS/OpenACC-CUDA-beginners/blob/main/content/1.02_openacc-introduction.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="introduction-to-openacc">
+<span id="openacc-introduction"></span><h1>Introduction to OpenACC<a class="headerlink" href="#introduction-to-openacc" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-openacc">
+<h2>What is OpenACC ?<a class="headerlink" href="#what-is-openacc" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>OpenACC defines a set of compiler directives that allow code regions
+to be offloaded from a host CPU to be computed on a GPU</p>
+<ul>
+<li><p>High level GPU programming</p></li>
+<li><p>Large similarity to OpenMP directives</p></li>
+</ul>
+</li>
+<li><p>Supports for both C/C++ and Fortran bindings</p></li>
+<li><p>More about OpenACC standard: <a class="reference external" href="http://www.openacc.org/">http://www.openacc.org</a></p></li>
+</ul>
+</div>
+<div class="section" id="openacc-vs-cuda-hip">
+<h2>OpenACC vs. CUDA/HIP<a class="headerlink" href="#openacc-vs-cuda-hip" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Why OpenACC and not CUDA/HIP?</p>
+<ul>
+<li><p>Easier to work with</p></li>
+<li><p>Porting of existing software requires less work</p></li>
+<li><p>Same code can be compiled to CPU and GPU versions easily</p></li>
+</ul>
+</li>
+<li><p>Why CUDA/HIP and not OpenACC?</p>
+<ul>
+<li><p>Can access all features of the GPU hardware</p></li>
+<li><p>More optimization possibilities</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="openacc-execution-model">
+<h2>OpenACC execution model<a class="headerlink" href="#openacc-execution-model" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Host-directed execution with an attached accelerator</p>
+<ul>
+<li><p>Large part of the program is usually executed by the host</p></li>
+<li><p>Computationally intensive parts are <em>offloaded</em> to the accelerator
+that executes <em>parallel regions</em></p></li>
+</ul>
+</li>
+<li><p>Accelerator can have a separate memory</p>
+<ul>
+<li><p>OpenACC exposes the separate memories through <em>data environment</em>
+that defines the memory management and needed copy operations</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="openacc-execution-model-1">
+<span id="id1"></span><h2>OpenACC execution model<a class="headerlink" href="#openacc-execution-model-1" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<ul class="simple">
+<li><p>Program runs on the host CPU</p></li>
+<li><p>Host offloads compute-intensive regions (<em>kernels</em>) and related
+data to the accelerator GPU</p></li>
+<li><p>Compute kernels are executed by the GPU</p></li>
+</ul>
+</div>
+<div class="column docutils container">
+<img alt="../_images/execution-model.png" src="../_images/execution-model.png" />
+</div>
+</div>
+<div class="section" id="openacc-data-model">
+<h2>OpenACC data model<a class="headerlink" href="#openacc-data-model" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<ul class="simple">
+<li><p>If host memory is separate from accelerator device memory</p>
+<ul>
+<li><p>host manages memory of the device</p></li>
+<li><p>host copies data to/from the device</p></li>
+</ul>
+</li>
+<li><p>When memories are not separate, no copies are needed (difference
+is transparent to the user)</p></li>
+</ul>
+</div>
+<div class="column docutils container">
+<img alt="../_images/data-movement.png" src="../_images/data-movement.png" />
+</div>
+</div>
+<div class="section" id="openacc-directive-syntax">
+<h2>OpenACC directive syntax<a class="headerlink" href="#openacc-directive-syntax" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 32%" />
+<col style="width: 23%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>sentinel</p></th>
+<th class="head"><p>construct</p></th>
+<th class="head"><p>clauses</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>C/C++</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kernels</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">copy(data)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Fortran</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">!$acc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kernels</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">copy(data)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>OpenACC uses compiler directives for defining compute regions (and
+data transfers) that are to be performed on a GPU</p></li>
+<li><p>Important constructs</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">parallel</span></code>, <code class="docutils literal notranslate"><span class="pre">kernels</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">loop</span></code>, <code class="docutils literal notranslate"><span class="pre">update</span></code>,
+<code class="docutils literal notranslate"><span class="pre">host_data</span></code>, <code class="docutils literal notranslate"><span class="pre">wait</span></code></p></li>
+</ul>
+</li>
+<li><p>Often used clauses</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">(condition)</span></code>, <code class="docutils literal notranslate"><span class="pre">async(handle)</span></code></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="compiling-an-openacc-program">
+<h2>Compiling an OpenACC program<a class="headerlink" href="#compiling-an-openacc-program" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Compilers that support OpenACC usually require an option that enables
+the feature</p>
+<ul>
+<li><p>PGI: <code class="docutils literal notranslate"><span class="pre">-acc</span></code></p></li>
+<li><p>Cray: <code class="docutils literal notranslate"><span class="pre">-h</span> <span class="pre">acc</span></code></p></li>
+<li><p>GNU (partial support): <code class="docutils literal notranslate"><span class="pre">-fopenacc</span></code></p></li>
+</ul>
+</li>
+<li><p>Without these options a regular CPU version is compiled!</p></li>
+</ul>
+</div>
+<div class="section" id="openacc-conditional-compilation">
+<h2>OpenACC conditional compilation<a class="headerlink" href="#openacc-conditional-compilation" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Conditional compilation with <code class="docutils literal notranslate"><span class="pre">_OPENACC</span></code> macro:</p></li>
+</ul>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifdef _OPENACC</span>
+<span class="n">device</span> <span class="n">specific</span> <span class="n">code</span>
+<span class="cp">#else</span>
+<span class="n">host</span> <span class="n">code</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">_OPENACC</span></code> macro is defined as <em>yyyymm</em>, where <em>yyyy</em> and <em>mm</em>
+refer to the year and month of when the specification supported by
+the compiler was released</p></li>
+</ul>
+</div>
+<div class="section" id="openacc-internal-control-variables">
+<h2>OpenACC internal control variables<a class="headerlink" href="#openacc-internal-control-variables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>OpenACC has internal control variables</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ACC_DEVICE_TYPE</span></code> controls which type of accelerator d</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="runtime-api-functions">
+<h2>Runtime API functions<a class="headerlink" href="#runtime-api-functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Low-level runtime API functions can be used to</p>
+<ul>
+<li><p>Query the number and type of devices in the system</p></li>
+<li><p>Initialize/shutdown the device(s)</p></li>
+<li><p>Allocate/deallocate memory on the device(s)</p></li>
+<li><p>Transfer data to/from the device(s)</p></li>
+</ul>
+</li>
+<li><p>Function definitions are in</p>
+<ul>
+<li><p>C/C++ header file <code class="docutils literal notranslate"><span class="pre">openacc.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">openacc</span></code> Fortran module (<code class="docutils literal notranslate"><span class="pre">openacc_lib.h</span></code> header in some
+implementations)</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="openacc-compute-constructs">
+<h2>OpenACC compute constructs<a class="headerlink" href="#openacc-compute-constructs" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="openacc-levels-of-parallelism">
+<h2>OpenACC levels of parallelism<a class="headerlink" href="#openacc-levels-of-parallelism" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<ul class="simple">
+<li><p>OpenACC has three levels of parallelism</p>
+<ul>
+<li><p><strong>Vector</strong> threads work in SIMT (SIMD) fashion</p></li>
+<li><p><strong>Workers</strong> compute a vector</p></li>
+<li><p><strong>Gangs</strong> have one or more workers that share resources, such
+as streaming multiprocessor</p></li>
+<li><p>Multiple gangs work independently</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="column docutils container">
+<img alt="../_images/vector-workers-gang.png" src="../_images/vector-workers-gang.png" />
+</div>
+</div>
+<div class="section" id="openacc-compute-constructs-1">
+<span id="id2"></span><h2>OpenACC compute constructs<a class="headerlink" href="#openacc-compute-constructs-1" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>OpenACC includes two different approaches for defining parallel
+regions</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">parallel</span></code> defines a region to be executed on an accelerator.
+Work sharing <em>parallelism</em> has to be defined <em>manually</em>. Good
+tuning prospects.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kernels</span></code> defines a region to be transferred into a series of
+kernels to be executed in <em>sequence</em> on an accelerator. Work
+sharing parallelism is defined <em>automatically</em> for the separate
+kernels, but tuning prospects limited.</p></li>
+</ul>
+</li>
+<li><p>With similar work sharing, both can perform equally well</p></li>
+</ul>
+</div>
+<div class="section" id="compute-constructs-kernels">
+<h2>Compute constructs: <code class="docutils literal notranslate"><span class="pre">kernels</span></code><a class="headerlink" href="#compute-constructs-kernels" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Define a region to be transferred to a sequence of kernels for
+execution on the accelerator device</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">kernels</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">kernels</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+<li><p>Each separate <em>loop nest</em> inside the region will be converted into a
+separate <em>parallel kernel</em></p></li>
+<li><p>The <em>kernels</em> will be executed in a <em>sequential</em> order</p></li>
+</ul>
+</div>
+<div class="section" id="example-kernels">
+<h2>Example: <code class="docutils literal notranslate"><span class="pre">kernels</span></code><a class="headerlink" href="#example-kernels" title="Permalink to this headline">¶</a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">C/C++</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Fortran</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Compute y=a*x+y */</span>
+<span class="kt">void</span> <span class="nf">accdaxpy</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="kt">double</span> <span class="n">a</span><span class="p">,</span>
+              <span class="k">const</span> <span class="kt">double</span> <span class="o">*</span> <span class="kr">restrict</span> <span class="n">x</span><span class="p">,</span>
+              <span class="kt">double</span> <span class="o">*</span> <span class="kr">restrict</span> <span class="n">y</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cp">#pragma acc kernels</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">...</span>
+
+<span class="cm">/* An example call to accdaxpy */</span>
+<span class="n">accdaxpy</span><span class="p">(</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="c">! Compute y=a*x+y</span>
+<span class="k">subroutine </span><span class="n">accdaxpy</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="kt">integer</span> <span class="kd">::</span> <span class="n">n</span><span class="p">,</span> <span class="n">j</span>
+    <span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="kd">::</span> <span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">y</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+    <span class="c">!$acc kernels</span>
+    <span class="k">do </span><span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="n">n</span>
+        <span class="n">y</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">=</span> <span class="n">y</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+    <span class="k">end do</span>
+    <span class="c">!$acc end kernels</span>
+<span class="k">end subroutine </span><span class="n">accdaxpy</span>
+
+<span class="c">! An example call to accdaxpy</span>
+<span class="k">call </span><span class="n">accdaxpy</span><span class="p">(</span><span class="mi">65536</span><span class="p">,</span> <span class="mf">3.14D0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></div>
+</div>
+<div class="section" id="compute-constructs-parallel">
+<h2>Compute constructs: <cite>parallel</cite><a class="headerlink" href="#compute-constructs-parallel" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl class="simple">
+<dt>Define a region to be executed on the accelerator device</dt><dd><ul class="simple">
+<li><p>C/C++: <cite>#pragma acc parallel [clauses]</cite></p></li>
+<li><p>Fortran: <cite>!$acc parallel [clauses]</cite></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Without any <em>work sharing</em> constructs, the whole region is executed
+<em>redundantly</em> multiple times</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Given a sequence of loop nests, each loop nest may be executed
+simultaneously</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="work-sharing-construct-loop">
+<h2>Work sharing construct: <cite>loop</cite><a class="headerlink" href="#work-sharing-construct-loop" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Define a loop to be parallelized</dt><dd><ul>
+<li><p>C/C++: <cite>#pragma acc loop [clauses]</cite></p></li>
+<li><p>Fortran: <cite>!$acc loop [clauses]</cite></p></li>
+<li><p>Must be followed by a C/C++ or Fortran loop construct.</p></li>
+<li><dl class="simple">
+<dt>Combined constructs with <cite>parallel</cite> and <cite>kernels</cite></dt><dd><ul>
+<li><p><cite>#pragma acc kernels loop</cite> / <cite>!$acc kernels loop</cite></p></li>
+<li><p><cite>#pragma acc parallel loop / !$acc parallel loop</cite></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Similar in functionality to OpenMP <cite>for/do</cite> construct</p></li>
+<li><p>Loop index variables are <cite>private</cite> variables by default</p></li>
+</ul>
+<div class="section" id="example-parallel">
+<h3>Example: <cite>parallel</cite><a class="headerlink" href="#example-parallel" title="Permalink to this headline">¶</a></h3>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">C/C++</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">Fortran</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Compute y=a*x+y */</span>
+<span class="kt">void</span> <span class="nf">accdaxpy</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="kt">double</span> <span class="n">a</span><span class="p">,</span>
+              <span class="k">const</span> <span class="kt">double</span> <span class="o">*</span> <span class="kr">restrict</span> <span class="n">x</span><span class="p">,</span>
+              <span class="kt">double</span> <span class="o">*</span> <span class="kr">restrict</span> <span class="n">y</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cp">#pragma acc parallel loop</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="cm">/* An example call to accdaxpy */</span>
+<span class="n">accdaxpy</span><span class="p">(</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">16</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="c">! Compute y=a*x+y</span>
+<span class="k">subroutine </span><span class="n">accdaxpy</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+  <span class="kt">integer</span> <span class="kd">::</span> <span class="n">n</span><span class="p">,</span> <span class="n">j</span>
+  <span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="kd">::</span> <span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">y</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+  <span class="c">!$acc parallel loop</span>
+  <span class="k">do </span><span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="n">n</span>
+     <span class="n">y</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">=</span> <span class="n">y</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+  <span class="k">end do</span>
+  <span class="c">!$acc end parallel loop</span>
+<span class="k">end subroutine </span><span class="n">accdaxpy</span>
+
+<span class="p">...</span>
+
+<span class="c">! An example call to accdaxpy</span>
+<span class="k">call </span><span class="n">accdaxpy</span><span class="p">(</span><span class="mi">65536</span><span class="p">,</span> <span class="mf">3.14D0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></div>
+</div>
+</div>
+<div class="section" id="compiler-diagnostics">
+<span id="compiler-diagnostics-1"></span><h2>Compiler diagnostics<a class="headerlink" href="#compiler-diagnostics" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Compiler diagnostics is usually the first thing to check when
+starting the OpenACC work</p>
+<ul>
+<li><p>It can tell you what operations were actually performed</p></li>
+<li><p>Data copies that were made</p></li>
+<li><p>If and how the loops were parallelized</p></li>
+</ul>
+</li>
+<li><p>The diagnostics is very compiler dependent</p>
+<ul>
+<li><p>Compiler flags</p></li>
+<li><p>Level and formatting of information</p></li>
+</ul>
+</li>
+</ul>
+<p>heat.o: heat.F90</p>
+<blockquote>
+<div><p>compiler</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Diagnostics is controlled by compiler flag <code class="docutils literal notranslate"><span class="pre">-Minfo=option</span></code></p></li>
+<li><p>Useful options:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">accel</span></code> – operations related to the accelerator</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">all</span></code> – print all compiler output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intensity</span></code> – print loop computational intensity info</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccff</span></code> – add extra information to the object files for use by
+tools</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="example-minfo">
+<h2>Example: <code class="docutils literal notranslate"><span class="pre">-Minfo</span></code><a class="headerlink" href="#example-minfo" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pgcc -fast -Minfo<span class="o">=</span>all -c util.c
+
+malloc_2d:
+     <span class="m">28</span>, Loop not vectorized: data dependency
+         Loop unrolled <span class="m">8</span> <span class="nb">times</span>
+         Generated <span class="m">1</span> prefetches <span class="k">in</span> scalar loop
+eval_point:
+     <span class="m">38</span>, Loop not vectorized/parallelized: potential early exits
+
+$ pgcc -fast -Minfo<span class="o">=</span>intensity -c util.c
+malloc_2d:
+     <span class="m">28</span>, <span class="nv">Intensity</span> <span class="o">=</span> <span class="m">3</span>.00
+eval_point:
+     <span class="m">38</span>, <span class="nv">Intensity</span> <span class="o">=</span> <span class="m">8</span>.00
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-minfo-1">
+<span id="id3"></span><h2>Example: <code class="docutils literal notranslate"><span class="pre">-Minfo</span></code><a class="headerlink" href="#example-minfo-1" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pgcc -acc -Minfo<span class="o">=</span>all doubleloops.c
+
+init:
+     <span class="m">38</span>, Memory zero idiom, loop replaced by call to __c_mzero8
+     <span class="m">44</span>, Memory <span class="nb">set</span> idiom, loop replaced by call to __c_mset8
+main:
+     <span class="m">74</span>, Generating Tesla code
+         <span class="m">77</span>, <span class="c1">#pragma acc loop gang /* blockIdx.x */</span>
+         <span class="m">79</span>, <span class="c1">#pragma acc loop vector(128) /* threadIdx.x */</span>
+     <span class="m">74</span>, Generating implicit copyin<span class="o">(</span>u<span class="o">[</span>:1024<span class="o">][</span>:1024<span class="o">])</span> <span class="o">[</span><span class="k">if</span> not already present<span class="o">]</span>
+         Generating implicit copyout<span class="o">(</span>unew<span class="o">[</span><span class="m">1</span>:1022<span class="o">][</span><span class="m">1</span>:1022<span class="o">])</span> <span class="o">[</span><span class="k">if</span> not already present<span class="o">]</span>
+     <span class="m">79</span>, Loop is parallelizable
+     <span class="m">84</span>, Generating Tesla code
+         <span class="m">87</span>, <span class="c1">#pragma acc loop gang /* blockIdx.x */</span>
+         <span class="m">89</span>, <span class="c1">#pragma acc loop vector(128) /* threadIdx.x */</span>
+     <span class="m">84</span>, Generating implicit copyin<span class="o">(</span>unew<span class="o">[</span>:1024<span class="o">][</span>:1024<span class="o">])</span> <span class="o">[</span><span class="k">if</span> not already present<span class="o">]</span>
+         Generating implicit copyout<span class="o">(</span>u<span class="o">[</span><span class="m">1</span>:1022<span class="o">][</span><span class="m">1</span>:1022<span class="o">])</span> <span class="o">[</span><span class="k">if</span> not already present<span class="o">]</span>
+     <span class="m">89</span>, Loop is parallelizable
+</pre></div>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>OpenACC is an directive-based extension to C/Fortran programming
+languages for accelerators</p></li>
+<li><p>Supports separate memory on the accelerator</p></li>
+<li><p>Compute constructs: parallel and kernels</p></li>
+<li><p>Compiler diagnostics</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../1.03_openacc-heat-equation/" class="btn btn-neutral float-right" title="Solving heat equation with OpenACC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../1.01_gpu-introduction/" class="btn btn-neutral float-left" title="Introduction to GPU" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, EuroCC National Competence Centre Sweden.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

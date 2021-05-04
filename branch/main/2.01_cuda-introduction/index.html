@@ -1,0 +1,766 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Introguction to CUDA &mdash; OpenACC/CUDA for beginners</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_lesson.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/togglebutton.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/minipres.js"></script>
+        <script src="../_static/tabs.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="Solving heat equation with CUDA" href="../2.02_cuda-heat-equation/" />
+    <link rel="prev" title="Solving heat equation with OpenACC" href="../1.03_openacc-heat-equation/" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../" class="icon icon-home"> OpenACC/CUDA for beginners
+          
+
+          
+            
+            <img src="../_static/ENCCS.jpg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1.01_gpu-introduction/">Introguction to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1.02_openacc-introduction/">Introguction to OpenACC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1.03_openacc-heat-equation/">Solving heat equation with OpenACC</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introguction to CUDA</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hello-cuda">Hello, CUDA!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transfer-data-execute-kernels">Transfer data, execute kernels</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../2.02_cuda-heat-equation/">Solving heat equation with CUDA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quick-reference/">Quick Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/">Instructor’s guide</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../">OpenACC/CUDA for beginners</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Introguction to CUDA</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/ENCCS/openacc-cuda-beginners/blob/main/content/2.01_cuda-introduction.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="introguction-to-cuda">
+<span id="cuda-introduction"></span><h1>Introguction to CUDA<a class="headerlink" href="#introguction-to-cuda" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="hello-cuda">
+<h2>Hello, CUDA!<a class="headerlink" href="#hello-cuda" title="Permalink to this headline">¶</a></h2>
+<p>Let us start familiarizing ourselves with CUDA by writing a simple “Helloca CUDA” program, which will query all available devices and print some information on them.
+We will start with a basic <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> code, change it so it will be compiled by CUDA compiler and do some CUDA API call, to see what devices are available.</p>
+<div class="admonition-getting-the-information-on-available-devices-using-cuda-api typealong toggle-shown dropdown admonition">
+<p class="admonition-title">Getting the information on available devices using CUDA API</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">C++</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Solution</button><button aria-controls="panel-0-0-2" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-2" name="0-2" role="tab" tabindex="-1">Extended solution</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;I can see %d device(s) if the code is compiled with nvcc:.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-CUDA notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">driverVersion</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">cudaDriverGetVersion</span><span class="p">(</span><span class="o">&amp;</span><span class="n">driverVersion</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;CUDA driver: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">driverVersion</span><span class="p">);</span>
+
+    <span class="kt">int</span> <span class="n">runtimeVersion</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">cudaRuntimeGetVersion</span><span class="p">(</span><span class="o">&amp;</span><span class="n">runtimeVersion</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;CUDA runtime: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">runtimeVersion</span><span class="p">);</span>
+
+    <span class="kt">int</span>         <span class="n">numDevices</span><span class="p">;</span>
+    <span class="n">cudaError_t</span> <span class="n">stat</span> <span class="o">=</span> <span class="n">cudaGetDeviceCount</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numDevices</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numDevices</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">cudaDeviceProp</span> <span class="n">prop</span><span class="p">;</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="n">cudaGetDeviceProperties</span><span class="p">(</span><span class="o">&amp;</span><span class="n">prop</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d: %s, CC %d.%d, %d SMs running at %dMHz, %luMB</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">prop</span><span class="p">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">major</span><span class="p">,</span> <span class="n">prop</span><span class="p">.</span><span class="n">minor</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">multiProcessorCount</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">clockRate</span><span class="o">/</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">totalGlobalMem</span><span class="o">/</span><span class="mi">1024</span><span class="o">/</span><span class="mi">1024</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-2" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-2" name="0-2" role="tabpanel" tabindex="0"><div class="highlight-CUDA notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+
+<span class="c1">// Beginning of GPU Architecture definitions</span>
+<span class="kr">inline</span> <span class="kt">int</span> <span class="n">_ConvertSMVer2Cores</span><span class="p">(</span><span class="kt">int</span> <span class="n">major</span><span class="p">,</span> <span class="kt">int</span> <span class="n">minor</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Defines for GPU Architecture types (using the SM version to determine</span>
+  <span class="c1">// the # of cores per SM</span>
+  <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">SM</span><span class="p">;</span>  <span class="c1">// 0xMm (hexidecimal notation), M = SM Major version,</span>
+    <span class="c1">// and m = SM minor version</span>
+    <span class="kt">int</span> <span class="n">Cores</span><span class="p">;</span>
+  <span class="p">}</span> <span class="n">sSMtoCores</span><span class="p">;</span>
+
+  <span class="n">sSMtoCores</span> <span class="n">nGpuArchCoresPerSM</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="p">{</span><span class="mh">0x30</span><span class="p">,</span> <span class="mi">192</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x32</span><span class="p">,</span> <span class="mi">192</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x35</span><span class="p">,</span> <span class="mi">192</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x37</span><span class="p">,</span> <span class="mi">192</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x50</span><span class="p">,</span> <span class="mi">128</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x52</span><span class="p">,</span> <span class="mi">128</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x53</span><span class="p">,</span> <span class="mi">128</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x60</span><span class="p">,</span>  <span class="mi">64</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x61</span><span class="p">,</span> <span class="mi">128</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x62</span><span class="p">,</span> <span class="mi">128</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x70</span><span class="p">,</span>  <span class="mi">64</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x72</span><span class="p">,</span>  <span class="mi">64</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x75</span><span class="p">,</span>  <span class="mi">64</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x80</span><span class="p">,</span>  <span class="mi">64</span><span class="p">},</span>
+      <span class="p">{</span><span class="mh">0x86</span><span class="p">,</span> <span class="mi">128</span><span class="p">},</span>
+      <span class="p">{</span><span class="mi">-1</span><span class="p">,</span> <span class="mi">-1</span><span class="p">}};</span>
+
+  <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">while</span> <span class="p">(</span><span class="n">nGpuArchCoresPerSM</span><span class="p">[</span><span class="n">index</span><span class="p">].</span><span class="n">SM</span> <span class="o">!=</span> <span class="mi">-1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">nGpuArchCoresPerSM</span><span class="p">[</span><span class="n">index</span><span class="p">].</span><span class="n">SM</span> <span class="o">==</span> <span class="p">((</span><span class="n">major</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="n">minor</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">nGpuArchCoresPerSM</span><span class="p">[</span><span class="n">index</span><span class="p">].</span><span class="n">Cores</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">index</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">driverVersion</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">cudaDriverGetVersion</span><span class="p">(</span><span class="o">&amp;</span><span class="n">driverVersion</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;CUDA driver: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">driverVersion</span><span class="p">);</span>
+
+    <span class="kt">int</span> <span class="n">runtimeVersion</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">cudaRuntimeGetVersion</span><span class="p">(</span><span class="o">&amp;</span><span class="n">runtimeVersion</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;CUDA runtime: %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">runtimeVersion</span><span class="p">);</span>
+
+    <span class="kt">int</span>         <span class="n">numDevices</span><span class="p">;</span>
+    <span class="n">cudaError_t</span> <span class="n">stat</span> <span class="o">=</span> <span class="n">cudaGetDeviceCount</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numDevices</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numDevices</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">cudaDeviceProp</span> <span class="n">prop</span><span class="p">;</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="n">cudaGetDeviceProperties</span><span class="p">(</span><span class="o">&amp;</span><span class="n">prop</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d: %s, CC %d.%d, %dx%d=%d@%dMHz CUDA cores, %luMB</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">prop</span><span class="p">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">major</span><span class="p">,</span> <span class="n">prop</span><span class="p">.</span><span class="n">minor</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">multiProcessorCount</span><span class="p">,</span> <span class="n">_ConvertSMVer2Cores</span><span class="p">(</span><span class="n">prop</span><span class="p">.</span><span class="n">major</span><span class="p">,</span> <span class="n">prop</span><span class="p">.</span><span class="n">minor</span><span class="p">),</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">multiProcessorCount</span><span class="o">*</span><span class="n">_ConvertSMVer2Cores</span><span class="p">(</span><span class="n">prop</span><span class="p">.</span><span class="n">major</span><span class="p">,</span> <span class="n">prop</span><span class="p">.</span><span class="n">minor</span><span class="p">),</span> <span class="n">prop</span><span class="p">.</span><span class="n">clockRate</span><span class="o">/</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">.</span><span class="n">totalGlobalMem</span><span class="o">/</span><span class="mi">1024</span><span class="o">/</span><span class="mi">1024</span><span class="p">);</span>
+
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></div>
+</div>
+<ol class="arabic">
+<li><p>We need the compiler to be aware that it is dealing with source file that may contain CUDA code.
+To do so, we change the extension of the file to <code class="docutils literal notranslate"><span class="pre">.cu</span></code>.
+We will not be using the GPU yet, only checking if we have some available.
+To do so, we will be using the CUDA API functions.
+Changing the extension to <code class="docutils literal notranslate"><span class="pre">.cu</span></code> will make sure that the <code class="docutils literal notranslate"><span class="pre">nvcc</span></code> compiler will add all the necessary includes and will be aware that the code can contain CUDA API calls.</p></li>
+<li><p>To get the number of devices we are going to use the following CUDA API function:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>__host__​__device__​ cudaError_t cudaGetDeviceCount ( int* numDevices )
+</pre></div>
+</div>
+<p>The function calls the API and returns the number of the available devices in the address provided as a first argument.
+There are a couple of things to notice here.
+First, the function is defined with two CUDA-specific qualifiers <code class="docutils literal notranslate"><span class="pre">__host__</span></code> and <code class="docutils literal notranslate"><span class="pre">__device__</span></code>.
+This means that it is available in both host and device code.
+Second, as most of CUDA calls, this function returns <code class="docutils literal notranslate"><span class="pre">cudaError_t</span></code> structure, which can contain a error message if something went wrong.
+In case of success, <code class="docutils literal notranslate"><span class="pre">cudaSuccess</span></code> is returned.</p>
+</li>
+<li><p>Now that we know how many devices we have, we can sycle through them and get properties of each one.
+The device properties are contained in <code class="docutils literal notranslate"><span class="pre">cudaDeviceProp</span></code> structure.
+This structure contains extensive information on the device (<a class="reference external" href="https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html#structcudaDeviceProp">see cudaDeviceProp API</a>), we are going to check its
+name (<code class="docutils literal notranslate"><span class="pre">prop.name</span></code>),
+major and minor compute capabilities (<code class="docutils literal notranslate"><span class="pre">prop.major</span></code> and <code class="docutils literal notranslate"><span class="pre">prop.minor</span></code>),
+number of streaming processors (<code class="docutils literal notranslate"><span class="pre">prop.multiProcessorCount</span></code>),
+core clock and available memory (<code class="docutils literal notranslate"><span class="pre">prop.totalGlobalMem</span></code>).</p>
+<p>To populate the <code class="docutils literal notranslate"><span class="pre">cudaDeviceProp</span></code> structure, one needs to call:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<p>__host__​ cudaError_t cudaGetDeviceProperties ( cudaDeviceProp* prop, int  deviceId )</p>
+<p>The function has a <code class="docutils literal notranslate"><span class="pre">__host__</span></code> qualifier, which means that one can not call it from the device code.
+It also returns <code class="docutils literal notranslate"><span class="pre">cudaError_t</span></code> structure, which can be <code class="docutils literal notranslate"><span class="pre">cudaErrorInvalidDevice</span></code> in case we are trying to get properties of a non-existing device (e.g. when <code class="docutils literal notranslate"><span class="pre">deviceId</span></code> is larger than <code class="docutils literal notranslate"><span class="pre">numDevices</span></code>)</p>
+</li>
+<li><p>Note that the total number of CUDA cores is not contained in <code class="docutils literal notranslate"><span class="pre">cudaDeviceProp</span></code> structure.
+This is so, because different devices can have different number of CUDA cores per streaming module (multiprocessor), which can by up to 192, depending on compute capabilities major and minor version of the device.
+The provided solution has a helper function from CUDA SDK examples, that can get this number depending on <code class="docutils literal notranslate"><span class="pre">prop.major</span></code> and <code class="docutils literal notranslate"><span class="pre">prop.minor</span></code>.</p></li>
+</ol>
+</div>
+<div class="section" id="transfer-data-execute-kernels">
+<h2>Transfer data, execute kernels<a class="headerlink" href="#transfer-data-execute-kernels" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-adding-vectors-using-cuda typealong toggle-shown dropdown admonition">
+<p class="admonition-title">Adding vectors using CUDA</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">C++</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">CUDA stub</button><button aria-controls="panel-1-1-2" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-2" name="1-2" role="tab" tabindex="-1">Add GPU data management</button><button aria-controls="panel-1-1-3" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-3" name="1-3" role="tab" tabindex="-1">Full solution</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;algorithm&gt;</span><span class="cp"></span>
+
+<span class="kt">void</span> <span class="nf">vecAdd</span><span class="p">(</span><span class="kt">int</span> <span class="n">numElements</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">b</span><span class="p">,</span> <span class="kt">float</span><span class="o">*</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">;</span>
+
+    <span class="kt">float</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="n">srand</span><span class="p">(</span><span class="mi">1214134</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+        <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">vecAdd</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">numElements</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%f + %f = %f</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+    <span class="n">free</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-CUDA notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;algorithm&gt;</span><span class="cp"></span>
+
+
+<span class="c1">// Change the code here:</span>
+<span class="c1">// This should be changed to GPU kernel definition</span>
+<span class="kt">void</span> <span class="nf">vecAdd</span><span class="p">(</span><span class="kt">int</span> <span class="n">numElements</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">b</span><span class="p">,</span> <span class="kt">float</span><span class="o">*</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">;</span>
+
+    <span class="kt">float</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="n">srand</span><span class="p">(</span><span class="mi">1214134</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+        <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Insert your code here:</span>
+    <span class="c1">// 1. Create GPU device buffers</span>
+    <span class="c1">// 2. Copy input data from host to device (vectors a and b)</span>
+    <span class="c1">// 3. Change the CPU function call to the GPU kernel call</span>
+    <span class="n">vecAdd</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+    <span class="c1">// 4. Copy the result back (vector c)</span>
+    
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">numElements</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%f + %f = %f</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+    <span class="n">free</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-1-1-2" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-2" name="1-2" role="tabpanel" tabindex="0"><div class="highlight-CUDA notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;algorithm&gt;</span><span class="cp"></span>
+
+<span class="c1">// Change the code here:</span>
+<span class="c1">// This should be changed to GPU kernel definition</span>
+<span class="kt">void</span> <span class="nf">vecAdd</span><span class="p">(</span><span class="kt">int</span> <span class="n">numElements</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">b</span><span class="p">,</span> <span class="kt">float</span><span class="o">*</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">;</span>
+
+    <span class="kt">float</span><span class="o">*</span> <span class="n">h_a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">h_b</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">h_c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="n">srand</span><span class="p">(</span><span class="mi">1214134</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">h_a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+        <span class="n">h_b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">srand</span><span class="p">(</span><span class="mi">1214134</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+        <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Insert your code here:</span>
+    
+    <span class="c1">// 1. Create GPU device buffers</span>
+    
+    <span class="kt">float</span><span class="o">*</span> <span class="n">d_a</span><span class="p">;</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">d_b</span><span class="p">;</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">d_c</span><span class="p">;</span>
+
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_a</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_b</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_c</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    
+    <span class="c1">// 2. Copy input data from host to device (vectors a and b)</span>
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_a</span><span class="p">,</span> <span class="n">h_a</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_b</span><span class="p">,</span> <span class="n">h_b</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+
+    <span class="c1">// 3. Change the CPU function call to the GPU kernel call</span>
+    <span class="n">vecAdd</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+
+    <span class="c1">// 4. Copy the result back (vector c)</span>
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">h_c</span><span class="p">,</span> <span class="n">d_c</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span>
+    
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">numElements</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%f + %f = %f</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+    <span class="n">free</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-1-1-3" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-3" name="1-3" role="tabpanel" tabindex="0"><div class="highlight-CUDA notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;algorithm&gt;</span><span class="cp"></span>
+
+<span class="kr">__global__</span> <span class="kt">void</span> <span class="n">vecAdd</span><span class="p">(</span><span class="kt">int</span> <span class="n">numElements</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="k">const</span> <span class="kt">float</span><span class="o">*</span> <span class="n">b</span><span class="p">,</span> <span class="kt">float</span><span class="o">*</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">numElements</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">;</span>
+
+    <span class="kt">float</span><span class="o">*</span> <span class="n">h_a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">h_b</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">h_c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="n">srand</span><span class="p">(</span><span class="mi">1214134</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">h_a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+        <span class="n">h_b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">rand</span><span class="p">())</span><span class="o">/</span><span class="kt">float</span><span class="p">(</span><span class="n">RAND_MAX</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">float</span><span class="o">*</span> <span class="n">d_a</span><span class="p">;</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">d_b</span><span class="p">;</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">d_c</span><span class="p">;</span>
+    
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_a</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_b</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_c</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_a</span><span class="p">,</span> <span class="n">h_a</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_b</span><span class="p">,</span> <span class="n">h_b</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+
+    <span class="n">vecAdd</span><span class="o">&lt;&lt;&lt;</span><span class="n">numElements</span><span class="o">/</span><span class="mi">256</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">256</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">numElements</span><span class="p">,</span> <span class="n">d_a</span><span class="p">,</span> <span class="n">d_b</span><span class="p">,</span> <span class="n">d_c</span><span class="p">);</span>
+
+    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">h_c</span><span class="p">,</span> <span class="n">d_c</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">numElements</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%f + %f = %f</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">h_a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">h_b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">h_c</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+    <span class="n">free</span><span class="p">(</span><span class="n">h_a</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">h_b</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">h_c</span><span class="p">);</span>
+
+    <span class="n">cudaFree</span><span class="p">(</span><span class="n">d_a</span><span class="p">);</span>
+    <span class="n">cudaFree</span><span class="p">(</span><span class="n">d_b</span><span class="p">);</span>
+    <span class="n">cudaFree</span><span class="p">(</span><span class="n">d_c</span><span class="p">);</span>
+    
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></div>
+</div>
+<ol class="arabic simple">
+<li><p>Familiarize yourself with the CPU version of the code.</p></li>
+<li><p>Download the CUDA stub version. We are going to start working on it below.</p></li>
+<li><p>The last two tabs contain intermediate version of the code, with all the GPU data management in place and a full solution.
+Feel free to use these codes for a reference.</p></li>
+</ol>
+<p>Now that we know that there is a CUDA device available and we can execute simple code on it.
+In CUDA, developer must control the data flow between host (CPU) and device (GPU) memory.
+To do so, one must declare the buffers that will be located in the device memory.
+It is usually convenient to “mirror” the host buffers, declaring and allocating buffers for the same data of the same size on both host and device, however this is not a requirement.
+Note that in CUDA, device buffer is a basic pointer and it can be easily confused with the host pointer.
+Using the device buffer on host most likely will lead to segmentation fault, so one must keep track of where the buffers are located.
+It is advisable to have the prefix that will indicate where the buffer is located, e.g. use <code class="docutils literal notranslate"><span class="pre">h_</span></code> prefix for host memory and <code class="docutils literal notranslate"><span class="pre">d_</span></code> prefix for device memory.
+Declaration of the device buffer is as simple as it is for the host buffer. For instance, declaring host and device buffers for a vector of floating point values <code class="docutils literal notranslate"><span class="pre">x</span></code> should look something like this:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">float</span><span class="o">*</span> <span class="n">h_x</span><span class="p">;</span>
+<span class="kt">float</span><span class="o">*</span> <span class="n">d_x</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Note that we have not specified yet, where the buffers are located.
+This is done when we are allocating the memory. On host it can be done by calling <code class="docutils literal notranslate"><span class="pre">alloc(..)</span></code> or <code class="docutils literal notranslate"><span class="pre">calloc(..)</span></code> function.</p>
+<p>Question: What is the difference between <code class="docutils literal notranslate"><span class="pre">alloc(..)</span></code> and <code class="docutils literal notranslate"><span class="pre">calloc(..)</span></code>?</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Only <code class="docutils literal notranslate"><span class="pre">calloc(..)</span></code> can be used for arrays.</p></li>
+<li><p>The difference is only in signatures, which makes <code class="docutils literal notranslate"><span class="pre">calloc(..)</span></code> more convenient to use for arrays. Both initialize the memory.</p></li>
+<li><p>The difference is only in signatures, which makes <code class="docutils literal notranslate"><span class="pre">calloc(..)</span></code> more convenient to use for arrays. Neither initialize the memory.</p></li>
+<li><p>Only <code class="docutils literal notranslate"><span class="pre">calloc(..)</span></code> initializes memory with zeroes.</p></li>
+</ol>
+<p>Answer: 4. Using <code class="docutils literal notranslate"><span class="pre">calloc(..)</span></code> ensures that the memory is set to zero values.</p>
+</div></blockquote>
+<p>To allocate buffer in GPU memory, one has to call the CUDA API function <code class="docutils literal notranslate"><span class="pre">cudaMalloc(..)</span></code>:</p>
+<div class="admonition-cudamalloc signature toggle-shown dropdown admonition">
+<p class="admonition-title"><a class="reference internal" href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html"><span class="xref std std-term"><code class="docutils literal notranslate">cudaMalloc(...)</code></span></a></p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>__host__ ​__device__​cudaError_t cudaMalloc ( void** devPtr, size_t size )
+</pre></div>
+</div>
+</div>
+<p>We are now getting used to these function having access qualifier and <code class="docutils literal notranslate"><span class="pre">cudaError_t</span></code> return.
+As the first arguments, the function takes a pointer to the buffer in the device memory.
+The function that allocates <code class="docutils literal notranslate"><span class="pre">size</span></code> bytes, as specified by the second argument, and updates the provided device duffer by the address of this allocation.
+Note that this function takes pointer to the buffer, which is itself a pointer.
+This allows to update the pointer to where the memory is allocated.</p>
+<p>To release the memory, <code class="docutils literal notranslate"><span class="pre">cudaFree(..)</span></code> function should be used:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>__host__ ​__device__​cudaError_t cudaFree ( void* devPtr )
+</pre></div>
+</div>
+<p>After memory is allocated, we need to copy data from host to device buffer and back.
+This is done using the <code class="docutils literal notranslate"><span class="pre">cudaMemcpy</span></code> function, that has the following signature:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>__host__​cudaError_t cudaMemcpy ( void* dst, const void* src, size_t count, cudaMemcpyKind kind )
+</pre></div>
+</div>
+<p>Both copy to and from the device buffer are done using the same function and the direction of the copy is specifies by the last argument, which is <code class="docutils literal notranslate"><span class="pre">cudaMemcpyKind</span></code> enumeration.
+The enumeration can take values <code class="docutils literal notranslate"><span class="pre">cudaMemcpyHostToHost</span></code>, <code class="docutils literal notranslate"><span class="pre">cudaMemcpyHostToDevice</span></code>, <code class="docutils literal notranslate"><span class="pre">cudaMemcpyDeviceToHost</span></code>, <code class="docutils literal notranslate"><span class="pre">cudaMemcpyDeviceToDevice</span></code> or <code class="docutils literal notranslate"><span class="pre">cudaMemcpyDefault</span></code>.
+All but the last are self-explanatory.
+Passing the <code class="docutils literal notranslate"><span class="pre">cudaMemcpyDefault</span></code> will make the API to deduce the direction of the transfer from pointer values, but require unified virtual addressing.
+Second to last argument is the size of the data to be copied in bytes.
+The first two arguments can be either host or device pointers, depending on the directionality of the transfer.
+This is where using <code class="docutils literal notranslate"><span class="pre">h_</span></code> and <code class="docutils literal notranslate"><span class="pre">d_</span></code> prefixes come handy: this way we should only remember the order in which the destination and the source arguments are specified.
+For instance, host to device copy call should look something like that:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_x</span><span class="p">,</span> <span class="n">h_x</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The names of the buffers suggest that the first argument (destination) is the device buffer and the second argument is the host buffer (source).
+This means that we are executing host to device copy, which is specified byt the last argument.
+After the execution on the device is done, we have the data in the device memory and the results can be copied back to the host memory using:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">h_x</span><span class="p">,</span> <span class="n">d_x</span><span class="p">,</span> <span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Question: What will happen if we execute the code as it is (“Add GPU data management” tab above)?</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>It will not compile.</p></li>
+<li><p>The output will be the same - we are still computing everything on the CPU.</p></li>
+<li><p>The results will be zero.</p></li>
+<li><p>The results can be anything.</p></li>
+</ol>
+<p>Answer: 4. The results can be anything. We are allocating the buffer for <code class="docutils literal notranslate"><span class="pre">d_c</span></code>, but don’t put any values in it.
+<code class="docutils literal notranslate"><span class="pre">cudaMalloc(..)</span></code> works similarly to <code class="docutils literal notranslate"><span class="pre">malloc</span></code>: the memory is allocated, but the data is not updated.
+So there may be some left-overs from different program at the address that we are using, although, likely it will be empty and contain zeroes.</p>
+</div></blockquote>
+<p>We are finally ready to define the function, that will be executed on the device (usually called GPU kernel).
+Kernels are defined by another qualifier, called <code class="docutils literal notranslate"><span class="pre">__global__</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">__global__</span> <span class="kt">void</span> <span class="n">gpu_kernel</span><span class="p">(..)</span>
+</pre></div>
+</div>
+<p>What <code class="docutils literal notranslate"><span class="pre">__global__</span></code> essentially means is that the function should be called from the host code, but will be executed on the device.
+Since this function will be executed in many threads, the return value must be void: otherwise it would not be clear which of the threads should do the return.
+The rest of the function definition is the same as with any c function: its name has the same limitations as a normal c function, it can have any number of arguments of any type, it is even can be templated.
+Since the call of the kernel function happens in the host code but it is executed on the device, this place in the code marks a transition from single-thread execution to a many-thread execution.
+One can think of it being a loop, each step of which is executed simultaneously.
+As in loop, one needs an index, to differentiate the threads.
+Here it gets a little bit complicated and we need to step back a little and remember how the GPUs are organized on a hardware level.</p>
+<p>The GPU contains several Streaming Modules (SMs, or multiprocessors), each with many compute units.
+Every compute unit can execute commands.
+So the entire GPU is first divided into streaming modules (or multiprocessors) and each multiprocessor contains many execution units.
+To reflect this hierarchy on a software level, threads are grouped in identically sized blocks.
+Each block is assigned into a streaming module for execution.
+This collection of the thread blocks is usually called “grid”, which also can be multi-dimensional.</p>
+<p>Although it may seem a bit complication at the beginning, the grouping of threads open extra opportunities for synchronization and data exchange.
+Since threads in a block are executed on a same SM, they share the cache and can do fast communications.
+This can be leveraged when designing and optimizing the code for GPU execution, and we will touch this topic later.</p>
+<p>Given that the threads on a GPU are organized in a hierarchical manner, the global index of a thread should be computed from its in-block index, the index of execution block and the execution block size.
+To get the global thread index, one can start the kernel function with:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">__global__</span> <span class="kt">void</span> <span class="n">gpu_kernel</span><span class="p">(..)</span>
+<span class="p">{</span>
+   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">threadIdx.x</span></code>, <code class="docutils literal notranslate"><span class="pre">blockIdx.x</span></code> and <code class="docutils literal notranslate"><span class="pre">blockDim.x</span></code> are internal variables that are always available inside the device function.
+They are, respectively, index of thread in a block, index of the block and the size of the block.
+Here, we use one-dimensional arrangement of blocks and threads (hence, the <code class="docutils literal notranslate"><span class="pre">.x</span></code>).
+More on multi-dimensional grids and CUDA built-in simple types later, for now we assume that the rest of the components equal to 1.
+Since the index <code class="docutils literal notranslate"><span class="pre">i</span></code> is unique for each thread in an entire grid, it is usually called “global” index.
+It is important to notice that the total number of threads in a grid is a multiple of the block size.
+This is not necessary the case for the problem that we are solving: the length of the vectors we are summing can be non-divisible by selected block size.
+So we either need to make sure that the threads with index large than the size of the vector don’t do anything, or add padding to the vectors.
+We are going to use the former, more simple solution, by adding a conditional after the global thread index is computed:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">__global__</span> <span class="kt">void</span> <span class="n">gpu_kernel</span><span class="p">(..)</span>
+<span class="p">{</span>
+   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">numElements</span><span class="p">)</span>
+   <span class="p">{</span>
+      <span class="p">...</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now the vectors can be addressed by the global index in the conditional the same way they are addressed in a loop of a CPU code.
+To have an access to the buffers, we need pass the device pointers to the kernel function, as we do with host pointers in the CPU code.</p>
+<p>Now the kernel is defined, we can call it from the host code.
+As mentioned above, the kernel will be executed in a grid of threads.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../2.02_cuda-heat-equation/" class="btn btn-neutral float-right" title="Solving heat equation with CUDA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../1.03_openacc-heat-equation/" class="btn btn-neutral float-left" title="Solving heat equation with OpenACC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, EuroCC National Competence Centre Sweden.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

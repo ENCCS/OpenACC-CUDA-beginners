@@ -1,0 +1,459 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Introduction to GPU &mdash; OpenACC/CUDA for beginners</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_lesson.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/togglebutton.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/minipres.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="Introduction to OpenACC" href="../1.02_openacc-introduction/" />
+    <link rel="prev" title="OpenACC/CUDA training for beginners" href="../" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../" class="icon icon-home"> OpenACC/CUDA for beginners
+          
+
+          
+            
+            <img src="../_static/ENCCS.jpg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction to GPU</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#moore-s-law">Moore’s law</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphics-processing-units">Graphics processing units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accelerator-performance-growth">Accelerator performance growth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accelerator-model-today">Accelerator model today</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gpu-architecture-nvidia-volta">GPU architecture: NVIDIA Volta</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#challenges-in-using-accelerators">Challenges in using Accelerators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-gpus">Using GPUs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-tasks">Compute tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exposing-parallelism">Exposing parallelism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#amdahl-s-law">Amdahl’s law</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parallel-computing-concepts">Parallel computing concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../1.02_openacc-introduction/">Introduction to OpenACC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1.03_openacc-heat-equation/">Introduction to OpenACC (cont.)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.01_cuda-introduction/">Introduction to CUDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.02_cuda-heat-equation/">Solving heat equation with CUDA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../setup/">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-reference/">Quick Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/">Instructor’s guide</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../">OpenACC/CUDA for beginners</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Introduction to GPU</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/ENCCS/OpenACC-CUDA-beginners/blob/main/content/1.01_gpu-introduction.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="introduction-to-gpu">
+<span id="gpu-introduction"></span><h1>Introduction to GPU<a class="headerlink" href="#introduction-to-gpu" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="moore-s-law">
+<h2>Moore’s law<a class="headerlink" href="#moore-s-law" title="Permalink to this headline">¶</a></h2>
+<p>The number of transistors in a dense integrated circuit doubles about every two years.
+More transistors means smaller size of a single element, so higher core frequency can be achieved.
+However, power consumption scales as frequency in third power, so the growth in the core frequency has slowed down significantly.
+Higher performance of a single node has to rely on its more complicated structure and still can be achieved with SIMD, branch prediction, etc.</p>
+<div class="figure align-center" id="id1">
+<img alt="../_images/microprocessor-trend-data.png" src="../_images/microprocessor-trend-data.png" />
+<p class="caption"><span class="caption-text">The evolution of microprocessors.
+The number of transistors per chip increase every 2 years or so.
+However it can no longer be explored by the core frequency due to power consumption limits.
+Before 2000, the increase in the single core clock frequency was the major source of the increase in the performance.
+Mid 2000 mark a transition towards multi-core processors.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<p>Achieving performance has been based on two main strategies over the years:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Increase the single processor performance:</p></li>
+<li><p>More recently, increase the number of physical cores.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="graphics-processing-units">
+<h2>Graphics processing units<a class="headerlink" href="#graphics-processing-units" title="Permalink to this headline">¶</a></h2>
+<p>The Graphics processing units (GPU) have been the most common accelerators during the last few years, the term GPU sometimes is used interchangeably with the term accelerator.
+GPUs were initially developed for highly-parallel task of graphic processing.
+Over the years, were used more and more in HPC.
+GPUs are a specialized parallel hardware for floating point operations.
+GPUs are co-processors for traditional CPUs: CPU still controls the work flow, delegating highly-parallel tasks to the GPU.
+Based on highly parallel architectures, which allows to take advantage of the increasing number of transistors.</p>
+<p>Using GPUs allows one to achieve very high performance per node.
+As a result, the single GPU-equipped workstation can outperform small CPU-based cluster for some type of computational tasks.
+The drawback is: usually major rewrites of programs is required.</p>
+<div class="figure align-center" id="id2">
+<img alt="../_images/gpu-devotes-more-transistors-to-data-processing.png" src="../_images/gpu-devotes-more-transistors-to-data-processing.png" />
+<p class="caption"><span class="caption-text">A comparison of the CPU and GPU architecture.
+CPU (left) has complex core structure and pack several cores on a single chip.
+GPU cores are very simple in comparison, they also share data and control between each other.
+This allows to pack more cores on a single chip, thus achieving very hich compute density.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="accelerator-performance-growth">
+<h2>Accelerator performance growth<a class="headerlink" href="#accelerator-performance-growth" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="id3">
+<img alt="../_images/peak-flop-development.png" src="../_images/peak-flop-development.png" />
+<p class="caption"><span class="caption-text">A growth in accelerator performance over the years in comparison to Intel CPU performance.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<p>One of the most important features that allows the accelerators to reach this high performance is their scalability.
+Computational cores on accelerators are usually grouped into multiprocessors.
+The multiprocessors share the data and locical elements.
+This allows for better scaling: more multiprocessors means more raw performance and this is very easy to achieve with more transistors available.</p>
+</div>
+<div class="section" id="accelerator-model-today">
+<h2>Accelerator model today<a class="headerlink" href="#accelerator-model-today" title="Permalink to this headline">¶</a></h2>
+<p>Accelerators are a separate main circuit board with the processor, memory, power management, etc.
+It is connected to the motherboard with CPUs via PCIe bus.
+Having its own memory means that the data has to be copied to and from it.
+CPU acts as a main processor, controlling the execution workflow.
+It copies the data from its own memory to the GPU memory, executes the program and copies the results back.
+GPUs runs tens of thousands of threads simultaneously on thousands of cores and does not do much of the data management.
+With many cores trying to access the memory simultaneously and with little cache available, the accelerator can run out of memory very quickly.
+This makes the data management and its access pattern is essential on the GPU.
+Accelerators like to be overloaded with the number of threads, because they can switch between threads very quickly.
+This allows to hide the memory operations: while some threads wait, others can compute.</p>
+</div>
+<div class="section" id="gpu-architecture-nvidia-volta">
+<h2>GPU architecture: NVIDIA Volta<a class="headerlink" href="#gpu-architecture-nvidia-volta" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="id4">
+<img alt="../_images/volta-architecture.png" src="../_images/volta-architecture.png" />
+<p class="caption"><span class="caption-text">A scheme of NVIDIA Volta GPU.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</div>
+<p>NVIDIA Volta streaming multiprocessor (SM):</p>
+<ul class="simple">
+<li><p>64 single precision cores</p></li>
+<li><p>32 double precision cores</p></li>
+<li><p>64 integer cores</p></li>
+<li><p>8 Tensore cores</p></li>
+<li><p>128 KB memory block for L1 and shared memory</p>
+<ul>
+<li><p>0 - 96 KB can be set to user managed shared memory</p></li>
+<li><p>The rest is L1</p></li>
+</ul>
+</li>
+<li><p>65536 registers - enables the GPU to run a very large number of threads</p></li>
+</ul>
+<div class="figure align-center" id="id5">
+<img alt="../_images/volta-sm-architecture.png" src="../_images/volta-sm-architecture.png" />
+<p class="caption"><span class="caption-text">A scheme of NVIDIA Volta streaming multiprocessor.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="challenges-in-using-accelerators">
+<h2>Challenges in using Accelerators<a class="headerlink" href="#challenges-in-using-accelerators" title="Permalink to this headline">¶</a></h2>
+<p><strong>Applicability</strong>: Is your algorithm suitable for GPU?</p>
+<p><strong>Programmability</strong>: Is the programming effort acceptable?</p>
+<p><strong>Portability</strong>: Rapidly evolving ecosystem and incompatibilities between vendors.</p>
+<p><strong>Availability</strong>: Can you access a (large scale) system with GPUs?</p>
+<p><strong>Scalability</strong>: Can you scale the GPU software efficiently to several nodes?</p>
+</div>
+<div class="section" id="using-gpus">
+<h2>Using GPUs<a class="headerlink" href="#using-gpus" title="Permalink to this headline">¶</a></h2>
+<p>From less to more difficult:</p>
+<ol class="arabic simple">
+<li><p>Use existing GPU applications</p></li>
+<li><p>Use accelerated libraries</p></li>
+<li><p>Directive based methods</p>
+<ul class="simple">
+<li><p>OpenMP</p></li>
+<li><p><strong>OpenACC</strong></p></li>
+</ul>
+</li>
+<li><p>Use lower level language</p>
+<ul class="simple">
+<li><p><strong>CUDA</strong></p></li>
+<li><p>HIP</p></li>
+<li><p>OpenCL</p></li>
+<li><p>SYCL</p></li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="section" id="compute-tasks">
+<h2>Compute tasks<a class="headerlink" href="#compute-tasks" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Serial computing:</p>
+<blockquote>
+<div><p>Single processing unit (“core”) is used for solving a problem.
+Example: Fibonacci numbers.</p>
+<div class="figure align-center">
+<img alt="../_images/serial.png" src="../_images/serial.png" />
+</div>
+</div></blockquote>
+</li>
+<li><p>Parallel computing</p>
+<blockquote>
+<div><p>A problem is split into smaller subtasks.
+Multiple subtasks are processed <em>simultaneously</em> using multiple cores.
+Good examples: molecular dynamics, computational fluid dynamics.</p>
+<div class="figure align-center">
+<img alt="../_images/parallel1.png" src="../_images/parallel1.png" />
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="exposing-parallelism">
+<h2>Exposing parallelism<a class="headerlink" href="#exposing-parallelism" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Data parallelism</p>
+<ul class="simple">
+<li><p>Data is distributed to processor cores.</p></li>
+<li><p>Each core performs simultaneously (nearly) identical operations with different data.</p></li>
+<li><p>Especially good on GPUs.</p></li>
+</ul>
+</li>
+<li><p>Task parallelism</p>
+<ul class="simple">
+<li><p>Different cores perform different operations with (the same or) different data</p></li>
+</ul>
+</li>
+<li><p>These can be combined</p>
+<div class="figure align-center">
+<img alt="../_images/dataparallelism.png" src="../_images/dataparallelism.png" />
+</div>
+</li>
+<li><p>Do not forget to use the CPU.
+GPU and CPU tasks can run simultaneously.</p></li>
+<li><p>Algorithmic improvements should always be considered.</p></li>
+</ul>
+</div>
+<div class="section" id="amdahl-s-law">
+<h2>Amdahl’s law<a class="headerlink" href="#amdahl-s-law" title="Permalink to this headline">¶</a></h2>
+<p>Parallel programs often contain sequential parts.
+<em>Amdahl’s law</em> gives the maximum speed-up in the presence of non-parallelizable parts.
+It is the main reason for limited scaling. The maximum speed-up is</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{ ( 1-F) + F/N}\]</div>
+<p>where <span class="math notranslate nohighlight">\(F\)</span> is the parallel fraction and <span class="math notranslate nohighlight">\(N\)</span> is the number of cores</p>
+<div class="figure align-center">
+<img alt="../_images/amdahl2.png" src="../_images/amdahl2.png" />
+</div>
+</div>
+<div class="section" id="parallel-computing-concepts">
+<h2>Parallel computing concepts<a class="headerlink" href="#parallel-computing-concepts" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Load balance</p>
+<ul>
+<li><p>Distribution of workload to different cores.</p></li>
+</ul>
+</li>
+<li><p>Parallel overhead</p>
+<ul>
+<li><p>Additional operations which are not present in serial calculation.</p></li>
+<li><p>Synchronization, redundant computations, communications.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>GPUs are highly parallel devices that can execute certain parts of the progrem in many parallel threads.</p></li>
+<li><p>In order to use the GPU efficiency, one has to split their task in many subtasks that can run simulteneously.</p></li>
+<li><p>Language extensions, such as CUDA, HIP, can give more performance, but harder to use.</p></li>
+<li><p>Directive based methods are easy to implement, but can not leverage all the GPU capabilities.</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../1.02_openacc-introduction/" class="btn btn-neutral float-right" title="Introduction to OpenACC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../" class="btn btn-neutral float-left" title="OpenACC/CUDA training for beginners" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, EuroCC National Competence Centre Sweden.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

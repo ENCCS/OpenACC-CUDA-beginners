@@ -1,0 +1,967 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Solving heat equation with OpenACC &mdash; OpenACC/CUDA for beginners</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_lesson.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/togglebutton.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/minipres.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="Introduction to CUDA" href="../2.01_cuda-introduction/" />
+    <link rel="prev" title="Introduction to OpenACC" href="../1.02_openacc-introduction/" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../" class="icon icon-home"> OpenACC/CUDA for beginners
+          
+
+          
+            
+            <img src="../_static/ENCCS.jpg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1.01_gpu-introduction/">Introduction to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1.02_openacc-introduction/">Introduction to OpenACC</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Solving heat equation with OpenACC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#motivation-for-optimizing-data-movement">Motivation for optimizing data movement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-lifetimes">Data lifetimes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-constructs-data">Data constructs: data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-construct-example">Data construct: example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-constructs-data-clauses">Data constructs: data clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-constructs-data-clauses-1">Data constructs: data clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-constructs-data-clauses-2">Data constructs: data clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-constructs-data-clauses-3">Data constructs: data clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reduction-operators-in-c-c-and-fortran">Reduction operators in C/C++ and Fortran</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reduction-operators-in-cc-and-fortran-1">Reduction operators in C/C++ and Fortran</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reduction-operators-in-c-c-only">Reduction operators in C/C++ only</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reduction-operators-in-fortran">Reduction operators in Fortran</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-specification">Data specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#default-data-environment-in-compute-constructs">Default data environment in compute constructs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">data</span></code> construct: example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unstructured-data-regions">Unstructured data regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unstructured-data">Unstructured data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#enter-data-clauses">Enter data clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exit-data-clauses">Exit data clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-directive-update">Data directive: update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-directive-update-1">Data directive: update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#update-directive-example"><code class="docutils literal notranslate"><span class="pre">update</span></code> directive: example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-directive-declare">Data directive: declare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#porting-and-managed-memory">Porting and managed memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#managed-memory">Managed memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../2.01_cuda-introduction/">Introduction to CUDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.02_cuda-heat-equation/">Solving heat equation with CUDA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../setup/">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-reference/">Quick Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/">Instructor’s guide</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../">OpenACC/CUDA for beginners</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Solving heat equation with OpenACC</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/ENCCS/OpenACC-CUDA-beginners/blob/main/content/1.03_openacc-heat-equation.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="solving-heat-equation-with-openacc">
+<span id="openacc-heat-equation"></span><h1>Solving heat equation with OpenACC<a class="headerlink" href="#solving-heat-equation-with-openacc" title="Permalink to this headline">¶</a></h1>
+<p># OpenACC data environment</p>
+<ul class="simple">
+<li><p>OpenACC supports devices which either share memory with or have a
+separate memory from the host</p></li>
+<li><p>Constructs and clauses for</p>
+<ul>
+<li><p>defining the variables on the device</p></li>
+<li><p>transferring data to/from the device</p></li>
+</ul>
+</li>
+<li><p>All variables used inside the <code class="docutils literal notranslate"><span class="pre">parallel</span></code> or <code class="docutils literal notranslate"><span class="pre">kernels</span></code> region will
+be treated as <em>implicit</em> variables if they are not present in any
+data clauses, i.e. copying to and from to the device is automatically
+performed</p></li>
+</ul>
+<div class="section" id="motivation-for-optimizing-data-movement">
+<h2>Motivation for optimizing data movement<a class="headerlink" href="#motivation-for-optimizing-data-movement" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>When dealing with an accelerator / GPU device attached to a PCIe bus,
+<strong>optimizing data movement</strong> is often <strong>essential</strong> to achieving good
+performance</p></li>
+<li><p>The four key steps in porting to high performance accelerated code:</p>
+<ol class="arabic simple">
+<li><p>Identify parallelism</p></li>
+<li><p>Express parallelism</p></li>
+<li><p>Express data movement</p></li>
+<li><p>Optimise loop performance</p></li>
+<li><p>Go back to 1!</p></li>
+</ol>
+</li>
+</ul>
+</div>
+<div class="section" id="data-lifetimes">
+<h2>Data lifetimes<a class="headerlink" href="#data-lifetimes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Typically data on the device has the same lifetime as the OpenACC
+construct (<code class="docutils literal notranslate"><span class="pre">parallel</span></code>, <code class="docutils literal notranslate"><span class="pre">kernels</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>) it is declared in</p></li>
+<li><p>It is possible to declare and refer to data residing statically on
+the device until deallocation takes place</p></li>
+<li><p>If the accelerator has a separate memory from the host, any
+modifications to the data on the host are not visible to the device
+before an explicit update has been made and vice versa</p></li>
+</ul>
+</div>
+<div class="section" id="data-constructs-data">
+<h2>Data constructs: data<a class="headerlink" href="#data-constructs-data" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Define a region with data declared in the device memory</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+<li><p>Data transfers take place</p>
+<ul>
+<li><p>from the <strong>host</strong> to the <strong>device</strong> upon entry to the region</p></li>
+<li><p>from the <strong>device</strong> to the <strong>host</strong> upon exit from the region</p></li>
+</ul>
+</li>
+<li><p>Functionality defined by <em>data clauses</em></p></li>
+<li><p><em>Data clauses</em> can also be used in <code class="docutils literal notranslate"><span class="pre">kernels</span></code> and <code class="docutils literal notranslate"><span class="pre">parallel</span></code>
+constructs</p></li>
+</ul>
+</div>
+<div class="section" id="data-construct-example">
+<h2>Data construct: example<a class="headerlink" href="#data-construct-example" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<p class="rubric" id="cc">C/C++</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">float</span> <span class="n">a</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+<span class="kt">int</span> <span class="n">iter</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">maxit</span><span class="o">=</span><span class="mi">100</span><span class="p">;</span>
+
+<span class="cp">#pragma acc data create(a)</span>
+<span class="p">{</span>
+    <span class="cm">/* Initialize data on device */</span>
+    <span class="n">init</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">iter</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">iter</span> <span class="o">&lt;</span> <span class="n">maxit</span><span class="p">;</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="cm">/* Computations on device */</span>
+        <span class="n">acc_compute</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="column docutils container">
+<p class="rubric" id="fortran">Fortran</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="kt">real</span> <span class="kd">::</span> <span class="n">a</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="kt">integer</span> <span class="kd">::</span> <span class="n">iter</span>
+<span class="kt">integer</span><span class="p">,</span> <span class="k">parameter</span> <span class="kd">::</span> <span class="n">maxit</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="c">!$acc data create(a)</span>
+<span class="c">! Initialize data on device</span>
+<span class="k">call </span><span class="n">init</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">do </span><span class="n">iter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">maxit</span>
+  <span class="c">! Computations on device</span>
+  <span class="k">call </span><span class="n">acc_compute</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">end do</span>
+<span class="c">!$acc end data</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="data-constructs-data-clauses">
+<h2>Data constructs: data clauses<a class="headerlink" href="#data-constructs-data-clauses" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">present(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><strong>on entry/exit:</strong> assume that memory is allocated and that data
+is present on the device</p></li>
+</ul>
+</div>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">create(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><strong>on entry:</strong> allocate memory on the device, unless it was already
+present</p></li>
+<li><p><strong>on exit:</strong> deallocate memory on the device, if it was allocated
+on entry</p>
+<ul>
+<li><p>in-depth: <em>structured</em> reference count decremented, and
+deallocation happens if both reference counts (<em>structured</em> and
+<em>dynamic</em>) are zero</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="data-constructs-data-clauses-1">
+<span id="id1"></span><h2>Data constructs: data clauses<a class="headerlink" href="#data-constructs-data-clauses-1" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">copy(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><strong>on entry:</strong> if data is present on the device on entry, behave as
+with the <code class="docutils literal notranslate"><span class="pre">present</span></code> clause, otherwise allocate memory on the device
+and copy data from the host to the device.</p></li>
+<li><p><strong>on exit:</strong> copy data from the device to the host and deallocate
+memory on the device if it was allocated on entry</p></li>
+</ul>
+</div>
+<div class="section" id="data-constructs-data-clauses-2">
+<span id="id2"></span><h2>Data constructs: data clauses<a class="headerlink" href="#data-constructs-data-clauses-2" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">copyin(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><strong>on entry:</strong> same as <code class="docutils literal notranslate"><span class="pre">copy</span></code> on entry</p></li>
+<li><p><strong>on exit:</strong> deallocate memory on the device if it was allocated
+on entry</p></li>
+</ul>
+</div>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">copyout(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><strong>on entry:</strong> if data is present on the device on entry, behave as
+with the <code class="docutils literal notranslate"><span class="pre">present</span></code> clause, otherwise allocate memory on the
+device</p></li>
+<li><p><strong>on exit:</strong> same as <code class="docutils literal notranslate"><span class="pre">copy</span></code> on exit</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="data-constructs-data-clauses-3">
+<span id="id3"></span><h2>Data constructs: data clauses<a class="headerlink" href="#data-constructs-data-clauses-3" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">reduction(operator:var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Performs reduction on the (scalar) variables in list</p></li>
+<li><p>Private reduction variable is created for each gang’s partial result</p>
+<ul>
+<li><p>initialised to operators initial value</p></li>
+</ul>
+</li>
+<li><p>After parallel region the reduction operation is applied to the
+private variables and the result is aggregated to the shared variable
+<em>and</em> the aggregated result is combined with the original value of
+the variable</p></li>
+</ul>
+</div>
+<div class="section" id="reduction-operators-in-c-c-and-fortran">
+<h2>Reduction operators in C/C++ and Fortran<a class="headerlink" href="#reduction-operators-in-c-c-and-fortran" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 59%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Arithmetic Operator</p></th>
+<th class="head"><p>Initial value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max</span></code></p></td>
+<td><p>least</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min</span></code></p></td>
+<td><p>largest</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reduction-operators-in-cc-and-fortran-1">
+<span id="id4"></span><h2>Reduction operators in C/C++ and Fortran<a class="headerlink" href="#reduction-operators-in-cc-and-fortran-1" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 59%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Arithmetic Operator</p></th>
+<th class="head"><p>Initial value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max</span></code></p></td>
+<td><p>least</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min</span></code></p></td>
+<td><p>largest</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reduction-operators-in-c-c-only">
+<h2>Reduction operators in C/C++ only<a class="headerlink" href="#reduction-operators-in-c-c-only" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Logical Operator</p></th>
+<th class="head"><p>Initial value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">||</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="column docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Bitwise Operator</p></th>
+<th class="head"><p>Initial value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&amp;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">|</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">^</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="reduction-operators-in-fortran">
+<h2>Reduction operators in Fortran<a class="headerlink" href="#reduction-operators-in-fortran" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Logical Operator</p></th>
+<th class="head"><p>Initial value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.and.</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.true.</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">.or.</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.false.</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.eqv.</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.true.</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">.neqv.</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.false.</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="column docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Bitwise Operator</p></th>
+<th class="head"><p>Initial value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">iand</span></code></p></td>
+<td><p>all bits on</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ior</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ieor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="data-specification">
+<h2>Data specification<a class="headerlink" href="#data-specification" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Data clauses specify functionality for different variables</p></li>
+<li><p>Overlapping data specifications are not allowed</p></li>
+<li><p>For array data, <em>array ranges</em> can be specified</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">arr[start_index:length]</span></code>, for instance <code class="docutils literal notranslate"><span class="pre">vec[0:n]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">arr(start_index:end_index)</span></code>, for instance <code class="docutils literal notranslate"><span class="pre">vec(1:n)</span></code></p></li>
+</ul>
+</li>
+<li><p>Note: array data <strong>must</strong> be <em>contiguous</em> in memory (vectors,
+multidimensional arrays etc.)</p></li>
+</ul>
+</div>
+<div class="section" id="default-data-environment-in-compute-constructs">
+<h2>Default data environment in compute constructs<a class="headerlink" href="#default-data-environment-in-compute-constructs" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>All variables used inside the <code class="docutils literal notranslate"><span class="pre">parallel</span></code> or <code class="docutils literal notranslate"><span class="pre">kernels</span></code> region will
+be treated as <em>implicit</em> variables if they are not present in any
+data clauses, i.e. copying to and from the device is automatically
+performed</p></li>
+<li><p>Implicit <em>array</em> variables are treated as having the <code class="docutils literal notranslate"><span class="pre">copy</span></code> clause
+in both cases</p></li>
+<li><p>Implicit <em>scalar</em> variables are treated as having the</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">copy</span></code> clause in <code class="docutils literal notranslate"><span class="pre">kernels</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">firstprivate</span></code> clause in <code class="docutils literal notranslate"><span class="pre">parallel</span></code></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="id5">
+<h2><code class="docutils literal notranslate"><span class="pre">data</span></code> construct: example<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<p class="rubric" id="id6">C/C++</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">100</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">;</span>
+
+<span class="cp">#pragma acc data copy(a[0:100])</span>
+<span class="p">{</span>
+    <span class="cp">#pragma acc parallel loop present(a)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">100</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="cp">#pragma acc parallel loop \</span>
+<span class="cp">          collapse(2) copyout(d)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="column docutils container">
+<p class="rubric" id="id7">Fortran</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="kt">integer </span><span class="n">a</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">99</span><span class="p">),</span> <span class="n">d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+
+<span class="c">!$acc data copy(a(0:99))</span>
+  <span class="c">!$acc parallel loop present(a)</span>
+  <span class="k">do </span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="mi">99</span>
+     <span class="n">a</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">a</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="k">end do</span>
+  <span class="c">!$acc end parallel loop</span>
+  <span class="c">!$acc parallel loop collapse(2) copyout(d)</span>
+  <span class="k">do </span><span class="n">j</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span>
+     <span class="k">do </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span>
+        <span class="n">d</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
+     <span class="k">end do</span>
+<span class="k">  end do</span>
+  <span class="c">!$acc end parallel loop</span>
+<span class="c">!$acc end data</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="unstructured-data-regions">
+<h2>Unstructured data regions<a class="headerlink" href="#unstructured-data-regions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Unstructured data regions enable one to handle cases where allocation
+and freeing is done in a different scope</p></li>
+<li><p>Useful for e.g. C++ classes, Fortran modules</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enter</span> <span class="pre">data</span></code> defines the start of an unstructured data region</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">enter</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">enter</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exit</span> <span class="pre">data</span></code> defines the end of an unstructured data region</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">exit</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">exit</span> <span class="pre">data</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="unstructured-data">
+<h2>Unstructured data<a class="headerlink" href="#unstructured-data" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">class</span> <span class="n">Vector</span> <span class="p">{</span>
+    <span class="n">Vector</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">)</span> <span class="o">:</span> <span class="n">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">new</span> <span class="kt">double</span><span class="p">[</span><span class="n">len</span><span class="p">];</span>
+        <span class="cp">#pragma acc enter data create(v[0:len])</span>
+    <span class="p">}</span>
+    <span class="o">~</span><span class="n">Vector</span><span class="p">()</span> <span class="p">{</span>
+        <span class="cp">#pragma acc exit data delete(v[0:len])</span>
+        <span class="n">delete</span><span class="p">[]</span> <span class="n">v</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="kt">double</span> <span class="n">v</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">len</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="enter-data-clauses">
+<h2>Enter data clauses<a class="headerlink" href="#enter-data-clauses" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">if(condition)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Do nothing if condition is false</p></li>
+</ul>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">create(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Allocate memory on the device</p></li>
+</ul>
+</div>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">copyin(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Allocate memory on the device and copy data from the host to the
+device</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="exit-data-clauses">
+<h2>Exit data clauses<a class="headerlink" href="#exit-data-clauses" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">if(condition)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Do nothing if condition is false</p></li>
+</ul>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">delete(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Deallocate memory on the device</p>
+<ul>
+<li><p>in-depth: <em>dynamic</em> reference count decremented, and
+deallocation happens if both reference counts (<em>dynamic</em> and
+<em>structured</em>) are zero</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="column docutils container">
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">copyout(var-list)</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Deallocate memory on the device and copy data from the device to
+the host</p>
+<ul>
+<li><p>in-depth: <em>dynamic</em> reference count decremented, and
+deallocation happens if both reference counts (<em>dynamic</em> and
+<em>structured</em>) are zero</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="data-directive-update">
+<h2>Data directive: update<a class="headerlink" href="#data-directive-update" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Define variables to be updated within a data region between host and
+device memory</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">update</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">update</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+<li><p>Data transfer direction controlled by <code class="docutils literal notranslate"><span class="pre">host(var-list)</span></code> or
+<code class="docutils literal notranslate"><span class="pre">device(var-list)</span></code> clauses</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">self</span></code> (<code class="docutils literal notranslate"><span class="pre">host</span></code>) clause updates variables from device to host</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">device</span></code> clause updates variables from host to device</p></li>
+</ul>
+</li>
+<li><p>At least one data direction clause must be present</p></li>
+</ul>
+</div>
+<div class="section" id="data-directive-update-1">
+<span id="id8"></span><h2>Data directive: update<a class="headerlink" href="#data-directive-update-1" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code> is a single line executable directive</p></li>
+<li><p>Useful for producing snapshots of the device variables on the host or
+for updating variables on the device</p>
+<ul>
+<li><p>Pass variables to host for visualization</p></li>
+<li><p>Communication with other devices on other computing nodes</p></li>
+</ul>
+</li>
+<li><p>Often used in conjunction with</p>
+<ul>
+<li><p>Asynchronous execution of OpenACC constructs</p></li>
+<li><p>Unstructured data regions</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="update-directive-example">
+<h2><code class="docutils literal notranslate"><span class="pre">update</span></code> directive: example<a class="headerlink" href="#update-directive-example" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<p class="rubric" id="id9">C/C++</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">float</span> <span class="n">a</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+<span class="kt">int</span> <span class="n">iter</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">maxit</span><span class="o">=</span><span class="mi">100</span><span class="p">;</span>
+
+<span class="cp">#pragma acc data create(a) {</span>
+    <span class="cm">/* Initialize data on device */</span>
+    <span class="n">init</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">iter</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">iter</span> <span class="o">&lt;</span> <span class="n">maxit</span><span class="p">;</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="cm">/* Computations on device */</span>
+        <span class="n">acc_compute</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+        <span class="cp">#pragma acc update self(a) \</span>
+<span class="cp">                if(iter % 10 == 0)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="column docutils container">
+<p class="rubric" id="id10">Fortran</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="kt">real</span> <span class="kd">::</span> <span class="n">a</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="kt">integer</span> <span class="kd">::</span> <span class="n">iter</span>
+<span class="kt">integer</span><span class="p">,</span> <span class="k">parameter</span> <span class="kd">::</span> <span class="n">maxit</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="c">!$acc data create(a)</span>
+    <span class="c">! Initialize data on device</span>
+    <span class="k">call </span><span class="n">init</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">do </span><span class="n">iter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">maxit</span>
+        <span class="c">! Computations on device</span>
+        <span class="k">call </span><span class="n">acc_compute</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="c">!$acc update self(a)</span>
+        <span class="c">!$acc&amp; if(mod(iter,10)==0)</span>
+    <span class="k">end do</span>
+<span class="c">!$acc end data</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="data-directive-declare">
+<h2>Data directive: declare<a class="headerlink" href="#data-directive-declare" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Makes a variable resident in accelerator memory</p></li>
+<li><p>Added at the declaration of a variable</p></li>
+<li><p>Data life-time on device is the implicit life-time of the variable</p>
+<ul>
+<li><p>C/C++: <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">acc</span> <span class="pre">declare</span> <span class="pre">[clauses]</span></code></p></li>
+<li><p>Fortran: <code class="docutils literal notranslate"><span class="pre">!$acc</span> <span class="pre">declare</span> <span class="pre">[clauses]</span></code></p></li>
+</ul>
+</li>
+<li><p>Supports usual data clauses, and additionally</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">device_resident</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">link</span></code></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="porting-and-managed-memory">
+<h2>Porting and managed memory<a class="headerlink" href="#porting-and-managed-memory" title="Permalink to this headline">¶</a></h2>
+<div class="column docutils container">
+<ul class="simple">
+<li><p>Porting a code with complicated data structures can be challenging
+because every field in type has to be copied explicitly</p></li>
+<li><p>Recent GPUs have <em>Unified Memory</em> and support for page faults</p></li>
+</ul>
+</div>
+<div class="column docutils container">
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="nc">points</span> <span class="p">{</span>
+    <span class="kt">double</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">init_point</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">points</span> <span class="n">p</span><span class="p">;</span>
+
+    <span class="cp">#pragma acc data create(p)</span>
+    <span class="p">{</span>
+        <span class="n">p</span><span class="p">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
+        <span class="n">p</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">malloc</span><span class="p">(...</span>
+        <span class="n">p</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">malloc</span><span class="p">(...</span>
+        <span class="cp">#pragma acc update device(p)</span>
+        <span class="cp">#pragma acc copyin (p.x[0:n]...</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="managed-memory">
+<h2>Managed memory<a class="headerlink" href="#managed-memory" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Managed memory copies can be enabled on PGI compilers</p>
+<ul>
+<li><p>Pascal (P100): <code class="docutils literal notranslate"><span class="pre">--ta=tesla,cc60,managed</span></code></p></li>
+<li><p>Volta (V100): <code class="docutils literal notranslate"><span class="pre">--ta=tesla,cc70,managed</span></code></p></li>
+</ul>
+</li>
+<li><p>For full benefits Pascal or Volta generation GPU is needed</p></li>
+<li><p>Performance depends on the memory access patterns</p>
+<ul>
+<li><p>For some cases performance is comparable with explicitly tuned
+versions</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Data directive</p>
+<ul>
+<li><p>Structured data region</p></li>
+<li><p>Clauses: <code class="docutils literal notranslate"><span class="pre">copy</span></code>, <code class="docutils literal notranslate"><span class="pre">present</span></code>, <code class="docutils literal notranslate"><span class="pre">copyin</span></code>, <code class="docutils literal notranslate"><span class="pre">copyout</span></code>,
+<code class="docutils literal notranslate"><span class="pre">create</span></code></p></li>
+</ul>
+</li>
+<li><p>Enter data &amp; exit data</p>
+<ul>
+<li><p>Unstructured data region</p></li>
+</ul>
+</li>
+<li><p>Update directive</p></li>
+<li><p>Declare directive</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../2.01_cuda-introduction/" class="btn btn-neutral float-right" title="Introduction to CUDA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../1.02_openacc-introduction/" class="btn btn-neutral float-left" title="Introduction to OpenACC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, EuroCC National Competence Centre Sweden.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

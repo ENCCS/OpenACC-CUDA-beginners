@@ -1,0 +1,496 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Setup &mdash; OpenACC/CUDA for beginners</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_lesson.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/togglebutton.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/minipres.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="Quick Reference" href="../quick-reference/" />
+    <link rel="prev" title="Solving heat equation with CUDA" href="../2.02_cuda-heat-equation/" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../" class="icon icon-home"> OpenACC/CUDA for beginners
+          
+
+          
+            
+            <img src="../_static/ENCCS.jpg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../1.01_gpu-introduction/">Introduction to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1.02_openacc-introduction/">Introduction to OpenACC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1.03_openacc-heat-equation/">Introduction to OpenACC (cont.)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.01_cuda-introduction/">Introduction to CUDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2.02_cuda-heat-equation/">Solving heat equation with CUDA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-on-tetralith">Running on Tetralith</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-log-in">How to log in</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#where-to-run-jobs">Where to run jobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-system">Module system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-edit-files">How to edit files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-submit-jobs">How to submit jobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#running-on-google-colab">Running on Google Colab</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-reference/">Quick Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/">Instructor’s guide</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../">OpenACC/CUDA for beginners</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Setup</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/ENCCS/OpenACC-CUDA-beginners/blob/main/content/setup.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="setup">
+<span id="id1"></span><h1>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h1>
+<p>In order to follow type-along sessions and do exercises in this lesson
+you will need access to a computational resource with GPUs and
+installations of CUDA and compilers supporting OpenACC.</p>
+<div class="admonition-where-to-run-the-exercises callout admonition">
+<p class="admonition-title">Where to run the exercises</p>
+<p>During an ENCCS workshop the primary way to do the exercises is to use
+the cluster available to workshop participants. You can find instruction
+for the Tetralith cluster below.</p>
+<p>If you do not have access to Tetralith but you have a user account on another
+GPU cluster you can use that instead - note however that you will need to
+adapt the instructions below according to the specifics of that cluster.</p>
+<p>If you do not have access to any GPU cluster, you can follow the instructions
+below on how to use Google Colab.</p>
+</div>
+<div class="admonition-download-example-codes callout admonition">
+<p class="admonition-title">Download example codes</p>
+<p>The C and Fortran codes used for exercises in this lesson are contained
+in the same Git repository as the lesson material, so it is easiest to clone
+the repository by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># if you have set up ssh keys on GitHub:</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">ENCCS</span><span class="o">/</span><span class="n">OpenACC</span><span class="o">-</span><span class="n">CUDA</span><span class="o">-</span><span class="n">beginners</span><span class="o">.</span><span class="n">git</span>
+<span class="c1"># otherwise:</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ENCCS</span><span class="o">/</span><span class="n">OpenACC</span><span class="o">-</span><span class="n">CUDA</span><span class="o">-</span><span class="n">beginners</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>After that, navigate to the examples directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">OpenACC</span><span class="o">-</span><span class="n">CUDA</span><span class="o">-</span><span class="n">beginners</span><span class="o">/</span><span class="n">examples</span>
+</pre></div>
+</div>
+<p>OpenACC examples are contained in the <code class="docutils literal notranslate"><span class="pre">OpenACC</span></code> directory and CUDA examples
+are in the <code class="docutils literal notranslate"><span class="pre">CUDA</span></code> directory.</p>
+<p>Code examples on the main branch use PGI compilers, which are available on e.g.
+the Tetralith cluster where the Nvidia HPC-SDK is installed. If you are on another
+cluster which doesn’t have PGI compilers, or you are using Google Colab, you should
+instead use the GNU version of the examples by changing to the <code class="docutils literal notranslate"><span class="pre">colab_gcc</span></code> branch:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">colab_gcc</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-on-tetralith">
+<h2>Running on Tetralith<a class="headerlink" href="#running-on-tetralith" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="how-to-log-in">
+<h3>How to log in<a class="headerlink" href="#how-to-log-in" title="Permalink to this headline">¶</a></h3>
+<p>On any Linux or Mac OS system, you can log in to Tetralith using the following
+command in a terminal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ssh</span>  <span class="o">&lt;</span><span class="n">username</span><span class="o">&gt;</span><span class="nd">@tetralith</span><span class="o">.</span><span class="n">nsc</span><span class="o">.</span><span class="n">liu</span><span class="o">.</span><span class="n">se</span>
+</pre></div>
+</div>
+<p>On Windows systems, you need to install
+<a class="reference external" href="https://www.chiark.greenend.org.uk/~sgtatham/putty/">PuTTY</a> to log in
+to Tetralith. More details can be found at
+<a class="reference external" href="https://www.nsc.liu.se/support/systems/tetralith-getting-started">https://www.nsc.liu.se/support/systems/tetralith-getting-started</a></p>
+</div>
+<div class="section" id="where-to-run-jobs">
+<h3>Where to run jobs<a class="headerlink" href="#where-to-run-jobs" title="Permalink to this headline">¶</a></h3>
+<p>When you log in on the Tetralith system, you can read the welcome messages (motd)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Welcome to NSC and Tetralith!
+
+**** Project storage directories available to you:
+/proj/snic2021-22-274/users/x_username
+
+**** Documentation and getting help:
+https://www.nsc.liu.se/support/systems/tetralith-getting-started/
+https://www.nsc.liu.se/support
+
+**** Useful commands
+To see your active projects and CPU time usage: projinfo
+To see available disk storage and usage: snicquota
+To see your last jobs: lastjobs
+Login to compute node to check running job: jobsh
+
+To tweak job priorities, extend timelimits and reserve nodes: see
+https://www.nsc.liu.se/support/batch-jobs/boost-tools/
+</pre></div>
+</div>
+<p>In this workshop, we recommend that you use your project folder,
+i.e. <strong>/proj/snic2021-22-274/users/&lt;your_username&gt;</strong>, to do the exercises:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">proj</span><span class="o">/</span><span class="n">snic2021</span><span class="o">-</span><span class="mi">22</span><span class="o">-</span><span class="mi">274</span><span class="o">/</span><span class="n">users</span><span class="o">/&lt;</span><span class="n">your_username</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>In your project directory, download the exercises by cloning the lesson
+repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ENCCS</span><span class="o">/</span><span class="n">OpenACC</span><span class="o">-</span><span class="n">CUDA</span><span class="o">-</span><span class="n">beginners</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">OpenACC</span><span class="o">-</span><span class="n">CUDA</span><span class="o">-</span><span class="n">beginners</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="module-system">
+<h3>Module system<a class="headerlink" href="#module-system" title="Permalink to this headline">¶</a></h3>
+<p>As on other HPC centers, modules are used to maintain and use large
+set of programs on Tetralith at NSC. The main module commands are
+presented below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="o">--</span><span class="n">help</span>         <span class="n">General</span> <span class="n">help</span> <span class="k">with</span> <span class="n">module</span> <span class="n">commands</span>
+
+<span class="n">module</span> <span class="n">avail</span>          <span class="n">List</span> <span class="n">the</span> <span class="n">available</span> <span class="n">modules</span> <span class="ow">and</span> <span class="n">recommendations</span>
+
+<span class="n">module</span> <span class="n">load</span> <span class="o">...</span>       <span class="n">Load</span> <span class="n">the</span> <span class="n">selected</span> <span class="n">modules</span> <span class="n">into</span> <span class="n">your</span> <span class="n">session</span> <span class="p">(</span><span class="n">can</span> <span class="n">also</span> <span class="n">write</span><span class="p">:</span> <span class="n">module</span> <span class="n">add</span><span class="p">)</span>
+
+<span class="n">module</span> <span class="nb">list</span>           <span class="n">List</span> <span class="n">your</span> <span class="n">currently</span> <span class="n">loaded</span> <span class="n">modules</span> <span class="p">(</span><span class="n">will</span> <span class="n">be</span> <span class="n">flushed</span> <span class="n">at</span> <span class="n">logout</span><span class="p">)</span>
+
+<span class="n">module</span> <span class="n">rm</span> <span class="o">...</span>         <span class="n">Remove</span> <span class="n">selected</span> <span class="n">modules</span> <span class="kn">from</span> <span class="nn">your</span> <span class="n">session</span>
+
+<span class="n">module</span> <span class="n">purge</span>          <span class="n">Remove</span> <span class="nb">all</span> <span class="n">loaded</span> <span class="n">modules</span>
+
+<span class="n">module</span> <span class="n">use</span> <span class="o">...</span>        <span class="n">Use</span> <span class="n">the</span> <span class="n">modulefile</span> <span class="n">which</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">installed</span> <span class="ow">in</span> <span class="n">default</span> <span class="n">path</span>
+</pre></div>
+</div>
+<p>More information about module system at NSC can be found at
+<a class="reference external" href="https://www.nsc.liu.se/software/modules">https://www.nsc.liu.se/software/modules</a></p>
+<p>Build scripts for many of the exercises in this lesson rely on the
+<a class="reference external" href="https://developer.nvidia.com/hpc-sdk">NVIDIA HPC SDK</a>. To load
+this environment, type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the nvhpc module for using pgcc/pgf90 compiler</span>
+<span class="n">module</span> <span class="n">use</span> <span class="o">/</span><span class="n">proj</span><span class="o">/</span><span class="n">snic2021</span><span class="o">-</span><span class="mi">22</span><span class="o">-</span><span class="mi">274</span><span class="o">/</span><span class="n">hpc_sdk</span><span class="o">/</span><span class="n">modulefiles</span>
+<span class="n">module</span> <span class="n">add</span> <span class="n">nvhpc</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-edit-files">
+<h3>How to edit files<a class="headerlink" href="#how-to-edit-files" title="Permalink to this headline">¶</a></h3>
+<p>If you are used to emacs or vim, you can use these on Tetralith. If you’re not
+used to these text editors, a good choice is to use the nano editor. Type
+<code class="docutils literal notranslate"><span class="pre">nano</span> <span class="pre">&lt;filename&gt;</span></code> to open a file. You can edit it as you want, save it by pressing
+<code class="docutils literal notranslate"><span class="pre">CTRL-o</span></code> and exit by <code class="docutils literal notranslate"><span class="pre">CTRL-x</span></code>.</p>
+</div>
+<div class="section" id="how-to-submit-jobs">
+<h3>How to submit jobs<a class="headerlink" href="#how-to-submit-jobs" title="Permalink to this headline">¶</a></h3>
+<p>NSC uses the Slurm workload manager for job
+scheduling. You can either run program interactively:</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># book a GPU compute node for 1 hour</span>
+<span class="c1"># using project ID &quot;snic2021-22-274&quot; for the workshop</span>
+<span class="c1"># and reservation &quot;openacc-cuda-workshop-2021-05-04&quot; for first day</span>
+<span class="n">interactive</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1</span> <span class="o">-</span><span class="n">c</span> <span class="mi">32</span> <span class="o">--</span><span class="n">gpus</span><span class="o">-</span><span class="n">per</span><span class="o">-</span><span class="n">task</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span><span class="n">t</span> <span class="mi">60</span> <span class="o">-</span><span class="n">A</span> <span class="n">snic2021</span><span class="o">-</span><span class="mi">22</span><span class="o">-</span><span class="mi">274</span> <span class="o">--</span><span class="n">reservation</span><span class="o">=</span><span class="n">openacc</span><span class="o">-</span><span class="n">cuda</span><span class="o">-</span><span class="n">workshop</span><span class="o">-</span><span class="mi">2021</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">04</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>or in batch mode with a job script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sbatch</span> <span class="n">job</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+<p>where the job script <em>job.sh</em> specifies the project ID, wall-clock time, number of node etc:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --account=snic2021-22-274</span>
+<span class="c1">#SBATCH --ntasks=1</span>
+<span class="c1">#SBATCH --gpus-per-task=1</span>
+<span class="c1">#SBATCH --time=00:15:00</span>
+
+module use /proj/snic2021-22-274/hpc_sdk/modulefiles
+module load nvhpc
+
+srun ./sum
+</pre></div>
+</div>
+</div>
+<div class="section" id="summary">
+<h3>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h3>
+<p>Here is a sample process to run OpenACC program on Tetralith:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># login on Tetralith from local computer</span>
+local_computer $ ssh &lt;your_username&gt;@tetralith.nsc.liu.se
+...
+<span class="c1"># use /proj/snic2021-22-274 folder</span>
+tetralith $ <span class="nb">cd</span> /proj/snic2021-22-274/users/&lt;your_username&gt;
+
+<span class="c1"># git the course material</span>
+tetralith $ git clone https://github.com/ENCCS/OpenACC-CUDA-beginners.git
+
+<span class="c1"># Use the example c code for vector addition</span>
+tetralith $ <span class="nb">cd</span> OpenACC-CUDA-beginners/examples/OpenACC/vector-sum/c
+
+<span class="c1"># Load the nvhpc module for using pgcc/pgf90 compiler</span>
+tetralith $ module use /proj/snic2021-22-274/hpc_sdk/modulefiles
+tetralith $ module avail nvhpc
+
+<span class="c1"># compile the code (or direct use &quot;make&quot;)</span>
+tetralith $ ./compile.sh
+
+<span class="c1"># check if the binary created</span>
+tetralith $ ls
+ Makefile  compile.sh  job.sh  sum  sum.c
+
+<span class="c1"># run the binary &quot;sum&quot; on GPU,</span>
+tetralith $ sbatch job.sh
+tetralith $ cat slurm-&lt;job_id&gt;.out
+  Reduction sum: <span class="m">1</span>.2020569031119108
+
+<span class="c1"># or directly use &quot;srun ... ./sum&quot;,</span>
+tetralith $ srun -n <span class="m">1</span>  --gpus-per-task<span class="o">=</span><span class="m">1</span> -t <span class="m">10</span> -A snic2021-22-274 --reservation<span class="o">=</span>openacc-cuda-workshop-2021-05-04 ./sum
+Reduction sum: <span class="m">1</span>.2020569031119108
+
+<span class="c1"># or run interactive</span>
+tetralith $ interactive -n <span class="m">1</span> -c <span class="m">32</span> --gpus-per-task<span class="o">=</span><span class="m">1</span> -t <span class="m">60</span> -A snic2021-22-274 --reservation<span class="o">=</span>openacc-cuda-workshop-2021-05-04
+salloc: job <span class="m">13170656</span> has been allocated resources
+salloc: Granted job allocation <span class="m">13170656</span>
+srun: Step created <span class="k">for</span> job <span class="m">13170656</span>
+
+<span class="c1"># Note: compute node has been assigned, check using command &quot;hostname&quot;</span>
+<span class="c1"># should directly run the binary</span>
+n1141 $ ./sum
+ Reduction sum: <span class="m">1</span>.2020569031119108
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="running-on-google-colab">
+<h2>Running on Google Colab<a class="headerlink" href="#running-on-google-colab" title="Permalink to this headline">¶</a></h2>
+<p>If you do not have access to any HPC clusters with GPUs, a fallback option
+can be to use the <a class="reference external" href="https://colab.research.google.com/">Google Colab service</a>
+where you can get access to GPUs in the cloud through Jupyter notebooks.
+<strong>Note: This requires that you have a Google account.</strong></p>
+<ul class="simple">
+<li><p>First click the “Open in Colab” button on <a class="reference external" href="https://colab.research.google.com/github/ENCCS/OpenACC-CUDA-beginners/blob/colab_gcc/examples/openACC_CUDA_colab.ipynb">https://colab.research.google.com/github/ENCCS/OpenACC-CUDA-beginners/blob/colab_gcc/examples/openACC_CUDA_colab.ipynb</a> and enter your Google login information.</p></li>
+<li><p>A Google-flavored Jupyter notebook should open on Colab which contains commands to get up and
+running on Colab. You need to press <code class="docutils literal notranslate"><span class="pre">SHIFT-ENTER</span></code> on the cells to execute them.</p></li>
+<li><p>To get access to a GPU, click on the <em>Runtime</em> menu and select <em>Change runtime type</em>.
+Choose GPU as a Hardware accelerator. It might take a minute for your notebook to
+connect to a GPU.</p></li>
+<li><p>To check whether a GPU has been connected to your session, run the code cell with the <code class="docutils literal notranslate"><span class="pre">!nvidia-smi</span></code>
+command by hitting <code class="docutils literal notranslate"><span class="pre">SHIFT-ENTER</span></code> on it.</p></li>
+<li><p>Click through the next few cells to clone the material, change to the colab branch and enter the
+exercise directories.</p></li>
+</ul>
+<p>All work on Google Colab needs to be done through a Jupyter notebook.
+Here is how you can work on the exercises:</p>
+<ul class="simple">
+<li><p>New code or text (markdown) cells can be created by clicking the “+Code” and “+Text” buttons,
+or through the keyboard shortcut <code class="docutils literal notranslate"><span class="pre">CTRL-m</span> <span class="pre">b</span></code>. Cells can be deleted by <code class="docutils literal notranslate"><span class="pre">CTRL-m</span> <span class="pre">d</span></code>.
+Cells are executed by pressing <code class="docutils literal notranslate"><span class="pre">SHIFT-ENTER</span></code> or pressing the Play button. Pressing instead
+<code class="docutils literal notranslate"><span class="pre">ALT-ENTER</span></code> runs a cell and creates a new one underneath, while <code class="docutils literal notranslate"><span class="pre">CTRL-ENTER</span></code> runs the cell
+and stays on the same cell.</p></li>
+<li><p>General shell commands can be entered into a code cell by prepending it with
+exclamation mark (e.g. <code class="docutils literal notranslate"><span class="pre">!ls</span></code>). Some shell commands have corresponding “magic” commands (e.g. “%ls”),
+and some commands need to use the magic form. In particular, to change directory you need <code class="docutils literal notranslate"><span class="pre">%cd</span> <span class="pre">some/path</span></code>.</p></li>
+<li><p>Explore the directory structure by clicking on the <em>Files</em> symbol in the left-hand
+panel and navigate the <em>OpenACC-CUDA-beginners / examples</em> directory (see red arrow in image below).</p></li>
+<li><p>In the file browser, navigate to the subfolder of the exercise you wish to work on and
+click on the three dots next to the directory and select “Copy path” (see red arrow in image below).</p></li>
+<li><p>In a code cell, paste the path into a <code class="docutils literal notranslate"><span class="pre">%cd</span></code> magic command to change directory.</p></li>
+<li><p>After changing directory, you can for example compile code with Makefiles by <code class="docutils literal notranslate"><span class="pre">!make</span></code>.</p></li>
+<li><p>You can open a text editor by double-clicking a file. This opens an editor on the right of the
+notebook and you can edit it there and save by hitting <code class="docutils literal notranslate"><span class="pre">CTRL-s</span></code> or going through the <em>File</em> menu.
+<strong>Note</strong>: it is for some reason impossible to open files with <code class="docutils literal notranslate"><span class="pre">.cu</span></code> ending in the Colab editor,
+so open instead the symbolic links with <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> ending when working on these files.</p></li>
+</ul>
+<a class="reference internal image-reference" href="../_images/colab.png"><img alt="../_images/colab.png" src="../_images/colab.png" style="width: 337.0px; height: 476.0px;" /></a>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../quick-reference/" class="btn btn-neutral float-right" title="Quick Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../2.02_cuda-heat-equation/" class="btn btn-neutral float-left" title="Solving heat equation with CUDA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, EuroCC National Competence Centre Sweden.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
