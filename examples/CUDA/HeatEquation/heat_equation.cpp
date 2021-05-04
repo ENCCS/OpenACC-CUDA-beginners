@@ -1,7 +1,14 @@
+/*
+ * Based on CSC materials from:
+ * 
+ * https://github.com/csc-training/openacc/tree/master/exercises/heat
+ *
+ */
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "pngwriter.h"
 
@@ -32,8 +39,8 @@ int main()
     const float dy2 = dy*dy;
 
     const float dt = dx2 * dy2 / (2.0 * a * (dx2 + dy2)); // Largest stable time step
-    const int numSteps = 500;                             // Number of time steps
-    const int outputEvery = 100;                          // How frequently to write output image
+    const int numSteps = 5000;                             // Number of time steps
+    const int outputEvery = 1000;                          // How frequently to write output image
 
     int numElements = nx*ny;
 
@@ -47,7 +54,7 @@ int main()
     {
         for (int j = 0; j < ny; j++)
         {
-            int index = getIndex(i, j, nx);
+            int index = getIndex(i, j, ny);
             // Distance of point i, j from the origin
             float ds2 = (i - nx/2) * (i - nx/2) + (j - ny/2)*(j - ny/2);
             if (ds2 < radius2)
@@ -64,20 +71,23 @@ int main()
     // Fill in the data on the next step to ensure that the boundaries are identical.
     memcpy(Unp1, Un, numElements*sizeof(float));
 
+    // Timing
+    clock_t start = clock();
+
     // Main loop
-    for (int n = 0; n < numSteps; n++)
+    for (int n = 0; n <= numSteps; n++)
     {
         // Going through the entire area
         for (int i = 1; i < nx-1; i++)
         {
             for (int j = 1; j < ny-1; j++)
             {
-                const int index = getIndex(i, j, nx);
+                const int index = getIndex(i, j, ny);
                 float uij = Un[index];
-                float uim1j = Un[getIndex(i-1, j, nx)];
-                float uijm1 = Un[getIndex(i, j-1, nx)];
-                float uip1j = Un[getIndex(i+1, j, nx)];
-                float uijp1 = Un[getIndex(i, j+1, nx)];
+                float uim1j = Un[getIndex(i-1, j, ny)];
+                float uijm1 = Un[getIndex(i, j-1, ny)];
+                float uip1j = Un[getIndex(i+1, j, ny)];
+                float uijp1 = Un[getIndex(i, j+1, ny)];
 
                 // Explicit scheme
                 Unp1[index] = uij + a * dt * ( (uim1j - 2.0*uij + uip1j)/dx2 + (uijm1 - 2.0*uij + uijp1)/dy2 );
@@ -93,6 +103,10 @@ int main()
         // Swapping the pointers for the next timestep
         std::swap(Un, Unp1);
     }
+
+    // Timing
+    clock_t finish = clock();
+    printf("It took %f seconds\n", (double)(finish - start) / CLOCKS_PER_SEC);
 
     // Release the memory
     free(Un);

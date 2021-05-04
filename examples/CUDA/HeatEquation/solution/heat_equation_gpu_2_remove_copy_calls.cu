@@ -1,7 +1,14 @@
+/*
+ * Based on CSC materials from:
+ * 
+ * https://github.com/csc-training/openacc/tree/master/exercises/heat
+ *
+ */
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "pngwriter.h"
 
@@ -23,53 +30,21 @@ int __host__ __device__ getIndex(const int i, const int j, const int width)
 
 __global__ void evolve_kernel(const float* Un, float* Unp1, const int nx, const int ny, const float dx2, const float dy2, const float aTimesDt)
 {
-    __shared__ float s_Un[(BLOCK_SIZE_X + 2)*(BLOCK_SIZE_Y + 2)];
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-    int j = threadIdx.y + blockIdx.y*blockDim.y;
-
-    int s_i = threadIdx.x + 1;
-    int s_j = threadIdx.y + 1;
-    int s_nx = BLOCK_SIZE_X + 2;
-
-    // Load data into shared memory
-    // Central square
-    s_Un[getIndex(s_i, s_j, s_nx)] = Un[getIndex(i, j, nx)];
-    // Top border
-    if (s_i == 1 && i != 0)
-    {
-        s_Un[getIndex(0, s_j, s_nx)] = Un[getIndex(blockIdx.x*blockDim.x - 1, j, nx)];
-    }
-    // Bottom border
-    if (s_i == BLOCK_SIZE_X && i != nx - 1)
-    {
-        s_Un[getIndex(BLOCK_SIZE_X + 1, s_j, s_nx)] = Un[getIndex((blockIdx.x + 1)*blockDim.x, j, nx)];
-    }
-    // Left border
-    if (s_j == 1 && j != 0)
-    {
-        s_Un[getIndex(s_i, 0, s_nx)] = Un[getIndex(i, blockIdx.y*blockDim.y - 1, nx)];
-    }
-    // Right border
-    if (s_j == BLOCK_SIZE_Y && j != ny - 1)
-    {
-        s_Un[getIndex(s_i, BLOCK_SIZE_Y + 1, s_nx)] = Un[getIndex(i, (blockIdx.y + 1)*blockDim.y, nx)];
-    }
-
-    // Make sure all the data is loaded before computing
-    __syncthreads();
-
     if (i > 0 && i < nx - 1)
     {
+        int j = threadIdx.y + blockIdx.y*blockDim.y;
         if (j > 0 && j < ny - 1)
         {
-            float uij = s_Un[getIndex(s_i, s_j, s_nx)];
-            float uim1j = s_Un[getIndex(s_i-1, s_j, s_nx)];
-            float uijm1 = s_Un[getIndex(s_i, s_j-1, s_nx)];
-            float uip1j = s_Un[getIndex(s_i+1, s_j, s_nx)];
-            float uijp1 = s_Un[getIndex(s_i, s_j+1, s_nx)];
+            const int index = getIndex(i, j, ny);
+            float uij = Un[index];
+            float uim1j = Un[getIndex(i-1, j, ny)];
+            float uijm1 = Un[getIndex(i, j-1, ny)];
+            float uip1j = Un[getIndex(i+1, j, ny)];
+            float uijp1 = Un[getIndex(i, j+1, ny)];
 
             // Explicit scheme
-            Unp1[getIndex(i, j, nx)] = uij + aTimesDt * ( (uim1j - 2.0*uij + uip1j)/dx2 + (uijm1 - 2.0*uij + uijp1)/dy2 );
+            Unp1[index] = uij + aTimesDt * ( (uim1j - 2.0*uij + uip1j)/dx2 + (uijm1 - 2.0*uij + uijp1)/dy2 );
         }
     }
 }
@@ -88,8 +63,8 @@ int main()
     const float dy2 = dy*dy;
 
     const float dt = dx2 * dy2 / (2.0 * a * (dx2 + dy2)); // Largest stable time step
-    const int numSteps = 500;                             // Number of time steps
-    const int outputEvery = 100;                          // How frequently to write output image
+    const int numSteps = 5000;                             // Number of time steps
+    const int outputEvery = 1000;                          // How frequently to write output image
 
     int numElements = nx*ny;
 
@@ -102,7 +77,7 @@ int main()
     {
         for (int j = 0; j < ny; j++)
         {
-            int index = getIndex(i, j, nx);
+            int index = getIndex(i, j, ny);
             // Distance of point i, j from the origin
             float ds2 = (i - nx/2) * (i - nx/2) + (j - ny/2)*(j - ny/2);
             if (ds2 < radius2)
@@ -128,8 +103,11 @@ int main()
     dim3 numBlocks(nx/BLOCK_SIZE_X + 1, ny/BLOCK_SIZE_Y + 1);
     dim3 threadsPerBlock(BLOCK_SIZE_X, BLOCK_SIZE_Y);
 
+    // Timing
+    clock_t start = clock();
+
     // Main loop
-    for (int n = 0; n < numSteps; n++)
+    for (int n = 0; n <= numSteps; n++)
     {
         evolve_kernel<<<numBlocks, threadsPerBlock>>>(d_Un, d_Unp1, nx, ny, dx2, dy2, a*dt);
 
@@ -150,6 +128,10 @@ int main()
 
         std::swap(d_Un, d_Unp1);
     }
+
+    // Timing
+    clock_t finish = clock();
+    printf("It took %f seconds\n", (double)(finish - start) / CLOCKS_PER_SEC);
 
     // Release the memory
     free(h_Un);
