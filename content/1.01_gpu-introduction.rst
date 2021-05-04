@@ -3,53 +3,50 @@
 Introduction to GPU
 ===================
 
+Moore's law
+-----------
 
-High-performance computing
---------------------------
-
-- High performance computing is fueled by ever increasing performance
-
-- Increasing performance allows breakthroughs in many major challenges that
-  humankind faces today
-
-- Not only hardware performance, algorithmic improvements have also added
-  ordered of magnitude of real performance
-
-
-HPC through the ages
---------------------
-
-- Achieving performance has been based on various strategies throughout the
-  years
-
-  - Frequency, vectorization, multinode, multicore ...
-
-  - Now performance is mostly limited by power consumption
-
-- Accelerators provide compute resources based on a very high level of
-  parallelism to reach high performance at low relative power consumption
-
+The number of transistors in a dense integrated circuit doubles about every two years.
+More transistors means smaller size of a single element, so higher core frequency can be achieved.
+However, power consumption scales as frequency in third power, so the growth in the core frequency has slowed down significantly.
+Higher performance of a single node has to rely on its more complicated structure and still can be achieved with SIMD, branch prediction, etc.
 
 .. figure:: img/microprocessor-trend-data.png
    :align: center
 
-Accelerators
-------------
+   The evolution of microprocessors.
+   The number of transistors per chip increase every 2 years or so.
+   However it can no longer be explored by the core frequency due to power consumption limits.
+   Before 2000, the increase in the single core clock frequency was the major source of the increase in the performance.
+   Mid 2000 mark a transition towards multi-core processors.
 
-- Specialized parallel hardware for floating point operations
+Achieving performance has been based on two main strategies over the years:
 
-  - Co-processors for traditional CPUs
+    - Increase the single processor performance: 
 
-  - Based on highly parallel architectures
+    - More recently, increase the number of physical cores.
 
-  - Graphics processing units (GPU) have been the most common
-    accelerators during the last few years
+Graphics processing units
+-------------------------
 
-- Promises
+The Graphics processing units (GPU) have been the most common accelerators during the last few years, the term GPU sometimes is used interchangeably with the term accelerator.
+GPUs were initially developed for highly-parallel task of graphic processing.
+Over the years, were used more and more in HPC.
+GPUs are a specialized parallel hardware for floating point operations.
+GPUs are co-processors for traditional CPUs: CPU still controls the work flow, delegating highly-parallel tasks to the GPU.
+Based on highly parallel architectures, which allows to take advantage of the increasing number of transistors.
 
-  - Very high performance per node
-  
-  - Usually major rewrites of programs required
+Using GPUs allows one to achieve very high performance per node.
+As a result, the single GPU-equipped workstation can outperform small CPU-based cluster for some type of computational tasks.
+The drawback is: usually major rewrites of programs is required.
+
+.. figure:: img/gpu-devotes-more-transistors-to-data-processing.png
+    :align: center
+
+    A comparison of the CPU and GPU architecture.
+    CPU (left) has complex core structure and pack several cores on a single chip.
+    GPU cores are very simple in comparison, they also share data and control between each other.
+    This allows to pack more cores on a single chip, thus achieving very hich compute density.
 
 Accelerator performance growth
 ------------------------------
@@ -57,73 +54,36 @@ Accelerator performance growth
 .. figure:: img/peak-flop-development.png
    :align: center
 
-Accelerators share of 500 fastest systems (Top500) 2010 vs 2020
----------------------------------------------------------------
+   A growth in accelerator performance over the years in comparison to Intel CPU performance.
 
-.. figure:: img/accelerator_share_june_2010.png
-    :align: center
-
-.. figure:: img/accelerator_share_june_2020.png
-    :align: center
-
-US roadmap to Exascale
-----------------------
-
-.. figure:: img/DoE-Exascale-Roadmap.png
-    :align: center
-
-EU roadmap to Exascale
-----------------------
-
-.. figure:: img/eurohpc.jpg
-    :align: center
-
-LUMI - Pre-exascale system in Finland
--------------------------------------
-
-.. figure:: img/lumi1.png
-    :align: center
-
-.. figure:: img/lumi2.png
-    :align: center
+One of the most important features that allows the accelerators to reach this high performance is their scalability.
+Computational cores on accelerators are usually grouped into multiprocessors.
+The multiprocessors share the data and locical elements.
+This allows for better scaling: more multiprocessors means more raw performance and this is very easy to achieve with more transistors available.
 
 Accelerator model today
 -----------------------
 
-- Connected to CPUs via PCIe
+Accelerators are a separate main circuit board with the processor, memory, power management, etc.
+It is connected to the motherboard with CPUs via PCIe bus.
+Having its own memory means that the data has to be copied to and from it.
+CPU acts as a main processor, controlling the execution workflow.
+It copies the data from its own memory to the GPU memory, executes the program and copies the results back.
+GPUs runs tens of thousands of threads simultaneously on thousands of cores and does not do much of the data management.
+With many cores trying to access the memory simultaneously and with little cache available, the accelerator can run out of memory very quickly.
+This makes the data management and its access pattern is essential on the GPU.
+Accelerators like to be overloaded with the number of threads, because they can switch between threads very quickly.
+This allows to hide the memory operations: while some threads wait, others can compute.
 
-- Local memory
-
-  - Smaller than main memory
-
-  - Very high bandwidth (up to 900 GB/s)
-
-  - Latency high compared to compute performance
-
-- Data must be copied over the PCIe bus
-
-GPU architecture
-----------------
-
-- Designed for running tens of thousands of threads simultaneously on
-  thousands of cores
-
-- Very small penalty for switching threads
-
-- Running large amounts of threads hides memory access penalties
-
-- Very expensive to synchronize all threads
-
-- Now Nvidia GPUs have close to monopoly in HPC - will change in next few years
-
-GPU architecture: Nvidia Volta
+GPU architecture: NVIDIA Volta
 ------------------------------
 
 .. figure:: img/volta-architecture.png
     :align: center
 
-GPU architecture: Nvidia Volta SM
----------------------------------
+    A scheme of NVIDIA Volta GPU.
+
+NVIDIA Volta streaming multiprocessor (SM):
 
 - 64 single precision cores
 
@@ -144,17 +104,7 @@ GPU architecture: Nvidia Volta SM
 .. figure:: img/volta-sm-architecture.png
     :align: center
 
-GPU architecture: warps
------------------------
-
-- All execution is done in terms of 32 threads, a warp
-
-- In a warp 32 threads compute the same instruction on different data
-  (SIMT)
-
-  - Warps are further collected into thread blocks; each executed on one SM
-
-  - In case of divergence (if...) computation is done one branch at a time
+    A scheme of NVIDIA Volta streaming multiprocessor.
 
 Challenges in using Accelerators
 --------------------------------
@@ -173,7 +123,7 @@ Challenges in using Accelerators
 Using GPUs
 ----------
 
-From less to more dificult:
+From less to more difficult:
 
 1. Use existing GPU applications
 
@@ -193,132 +143,63 @@ From less to more dificult:
 
    - OpenCL
 
-Directive-based accelerator languages
--------------------------------------
+   - SYCL
 
-- Annotating code to pinpoint accelerator-offloadable regions
+Compute tasks
+-------------
 
-- OpenACC standard created in Nov 2011
+- Serial computing:
 
-  - Focus on optimizing productivity (reasonably good performance with
-    minimal effort)
+    Single processing unit ("core") is used for solving a problem.
+    Example: Fibonacci numbers.
 
-  - Current standard is 3.0 (November 2019)
-
-  - Mostly Nvidia only
-
-- OpenMP
-
-  - Earlier only threading for CPUs
-
-  - 4.5 also includes for the first time some support for accelerators
-  
-  - 5.0 standard vastly improved
-
-  - Dominant directive approach in the future?
-
-GPUs at CSC - Puhti-AI
-----------------------
-
-- In total 80 nodes with a total peak performance of 2.7 Petaflops
-
-- Each node has
-
-  - Two latest generation Intel Xeon processors, code name Cascade Lake,
-    with 20 cores each running at 2.1 GHz (Xeon Gold 6230)
-
-  - Four Nvidia Volta V100 GPUs with 32 GB of memory each
-
-  - 384 GB of main memory
-
-  - 3.2 TB of fast local storage
-
-  - Dual rail HDR100 interconnect network connectivity providing 200Gbps
-    aggregate bandwidth
-
-Computing in parallel
----------------------
-
-- Serial computing
-
-    - Single processing unit ("core") is used for solving a problem
-
-.. figure:: img/serial.png
-    :align: center
-
-
-Computing in parallel
----------------------
+    .. figure:: img/serial.png
+        :align: center
 
 - Parallel computing
 
-  - A problem is split into smaller subtasks
+    A problem is split into smaller subtasks.
+    Multiple subtasks are processed *simultaneously* using multiple cores.
+    Good examples: molecular dynamics, computational fluid dynamics.
 
-  - Multiple subtasks are processed *simultaneously* using multiple
-    cores
-
-.. figure:: img/parallel1.png
-    :align: center
+    .. figure:: img/parallel1.png
+        :align: center
 
 Exposing parallelism
 --------------------
 
 - Data parallelism
 
-  - Data is distributed to processor cores
+  - Data is distributed to processor cores.
 
-  - Each core performs simultaneously (nearly) identical operations with
-    different data
+  - Each core performs simultaneously (nearly) identical operations with different data.
 
-  - Especially good on GPUs(!)
+  - Especially good on GPUs.
 
 - Task parallelism
 
-  - Different cores perform different operations with (the same or)
-    different data
+  - Different cores perform different operations with (the same or) different data
 
 - These can be combined
 
-.. figure:: img/dataparallelism.png
+  .. figure:: img/dataparallelism.png
     :align: center
 
-Parallel scaling
-----------------
+- Do not forget to use the CPU.
+  GPU and CPU tasks can run simultaneously.
 
-- Strong parallel scaling
-
-  - Constant problem size
-
-  - Execution time decreases in proportion to the increase in the number
-    of cores
-
-- Weak parallel scaling
-
-  - Increasing problem size
-
-  - Execution time remains constant when number of cores increases in
-    proportion to the problem size
-
-.. figure:: img/amdahl.png
-    :align: center
+- Algorithmic improvements should always be considered.
 
 Amdahl's law
 ------------
 
-- Parallel programs often contain sequential parts
-
-- *Amdahl's law* gives the maximum speed-up in the presence of
-   non-parallelizable parts
-
-- Main reason for limited scaling
-
-- Maximum speed-up is
+Parallel programs often contain sequential parts.
+*Amdahl's law* gives the maximum speed-up in the presence of non-parallelizable parts.
+It is the main reason for limited scaling. The maximum speed-up is
 
 .. math::
     \frac{1}{ ( 1-F) + F/N}
   
-
-
 where :math:`F` is the parallel fraction and :math:`N` is the number of cores
 
 
@@ -331,22 +212,22 @@ Parallel computing concepts
 
 - Load balance
 
-  - Distribution of workload to different cores
+  - Distribution of workload to different cores.
 
 - Parallel overhead
 
-  - Additional operations which are not present in serial calculation
+  - Additional operations which are not present in serial calculation.
 
-  - Synchronization, redundant computations, communications
+  - Synchronization, redundant computations, communications.
 
 
 Summary
 -------
 
-- HPC throughout the ages -- performance through parellelism
+- GPUs are highly parallel devices that can execute certain parts of the progrem in many parallel threads.
 
-- Programming GPUs
+- In order to use the GPU efficiency, one has to split their task in many subtasks that can run simulteneously.
 
-  - CUDA, HIP
+- Language extensions, such as CUDA, HIP, can give more performance, but harder to use.
 
-  - Directive based methods
+- Directive based methods are easy to implement, but can not leverage all the GPU capabilities.
